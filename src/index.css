@@ -31,3 +31,36 @@ body {
   color: var(--color-ink-900);
   -webkit-font-smoothing: antialiased;
 }
+/* ─── Mobile fixes ─────────────────────────────────── */
+
+html, body {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* iOS-এ input-এ tap করলে page zoom হয়ে যায় যদি font 16px-এর কম হয়।
+   এটাই মোবাইলে সবচেয়ে বিরক্তিকর অভিজ্ঞতা — form ভরতে গেলেই screen লাফায়। */
+@media (max-width: 767px) {
+  input, select, textarea, [contenteditable] {
+    font-size: 16px !important;
+  }
+}
+
+/* Tap করলে নীল ঝলকানি — মোবাইলে সস্তা দেখায় */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iPhone-এর home indicator bar-এর জন্য জায়গা */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-bottom-nav {
+  height: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* মোবাইলে scroll মসৃণ রাখা */
+body {
+  -webkit-overflow-scrolling: touch;
+}

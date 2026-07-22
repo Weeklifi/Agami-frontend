@@ -1,30 +1,54 @@
-export default function Modal({ open, onClose, title, children, wide = false }) {
+import { useEffect } from "react";
+
+export default function Modal({ open, onClose, title, wide = false, children }) {
+  // Modal খোলা থাকলে পেছনের page scroll বন্ধ — নাহলে মোবাইলে
+  // modal scroll করতে গিয়ে পেছনের page নড়ে, খুব বিরক্তিকর
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
+
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      onClick={onClose}
-    >
-      <div className="absolute inset-0 bg-ink-900/40" />
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center
+      justify-center sm:p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-ink-900/50" />
+
       <div
-        className={`relative w-full ${
-          wide ? "sm:max-w-4xl" : "sm:max-w-md"
-        } rounded-t-2xl sm:rounded-2xl border border-line bg-surface p-6
-          max-h-[85vh] overflow-y-auto`}
         onClick={(e) => e.stopPropagation()}
+        className={`relative w-full bg-surface
+          rounded-t-2xl sm:rounded-2xl
+          max-h-[88dvh] sm:max-h-[85dvh] flex flex-col
+          ${wide ? "sm:max-w-2xl" : "sm:max-w-md"}`}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold">{title}</h2>
+        {/* মোবাইলে টানার handle — bottom sheet বোঝাতে */}
+        <div className="sm:hidden flex justify-center pt-2.5 pb-1">
+          <div className="h-1 w-10 rounded-full bg-line" />
+        </div>
+
+        <div className="flex items-center justify-between gap-3 px-5 py-3
+          border-b border-line shrink-0">
+          <h2 className="text-base font-semibold truncate">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-ink-400 hover:bg-page"
+            className="-mr-1 p-2 rounded-lg text-ink-400 active:bg-page"
             aria-label="Close"
           >
-            ✕
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
-        {children}
+
+        {/* এই অংশটাই scroll হবে — modal নিজে না */}
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4
+          safe-bottom">
+          {children}
+        </div>
       </div>
     </div>
   );

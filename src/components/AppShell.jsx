@@ -12,8 +12,6 @@ export default function AppShell({ title, children }) {
   const { pathname } = useLocation();
   const { t } = useTranslation();
   const [drawerOpen, setDrawerOpen] = useState(false);
-
-  // Student-এর batch গুলো dropdown-এর জন্য
   const [myBatches, setMyBatches] = useState([]);
   const [batchOpen, setBatchOpen] = useState(true);
 
@@ -31,7 +29,6 @@ export default function AppShell({ title, children }) {
       { to: "/teacher/batches", label: t("batches"), icon: "▣" },
       { to: "/teacher", label: t("dashboard"), icon: "▦" },
       { to: "/teacher/sms", label: "SMS", icon: "✉" },
-      { to: "/teacher/sms/recharge", label: "SMS Recharge", icon: "✉" },
       { to: "/teacher/subscription", label: t("subscription"), icon: "◈" },
       { to: "/teacher/profile", label: "Profile", icon: "◉" },
     ],
@@ -43,6 +40,8 @@ export default function AppShell({ title, children }) {
   };
 
   const items = NAV[user?.role] || [];
+  // মোবাইলে সর্বোচ্চ ৪টা tab — বেশি হলে চাপাচাপি লাগে, বাকিটা drawer-এ
+  const mobileItems = items.slice(0, 4);
 
   const isActive = (to) =>
     to === "/teacher" || to === "/student"
@@ -59,11 +58,12 @@ export default function AppShell({ title, children }) {
       return (
         <Link
           to={item.to}
-          className={`flex flex-col items-center gap-0.5 py-2 flex-1 text-[11px]
-            ${active ? "text-brand-600 font-medium" : "text-ink-400"}`}
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1
+            min-h-[3.5rem] text-[11px] active:bg-page
+            ${active ? "text-brand-600 font-semibold" : "text-ink-400"}`}
         >
-          <span className="text-base leading-none">{item.icon}</span>
-          {item.label}
+          <span className="text-lg leading-none">{item.icon}</span>
+          <span className="truncate max-w-full px-1">{item.label}</span>
         </Link>
       );
     }
@@ -71,10 +71,10 @@ export default function AppShell({ title, children }) {
       <Link
         to={item.to}
         onClick={() => setDrawerOpen(false)}
-        className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm
+        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm
           ${active
             ? "bg-brand-50 text-brand-700 font-medium"
-            : "text-ink-600 hover:bg-page"
+            : "text-ink-600 hover:bg-page active:bg-page"
           }`}
       >
         <span className="w-4 text-center">{item.icon}</span>
@@ -83,20 +83,17 @@ export default function AppShell({ title, children }) {
     );
   }
 
-  // Sidebar-এর ভেতরের content — desktop <aside> আর mobile drawer
-  // দুটোতেই reuse হবে, কোড duplicate করছি না
   function SidebarContent() {
     return (
       <>
         <nav className="flex-1 space-y-1 px-3 overflow-y-auto">
           {user?.role === "STUDENT" ? (
             <>
-              {/* আমার Batch — dropdown */}
               <div>
                 <button
                   onClick={() => setBatchOpen(!batchOpen)}
                   className={`w-full flex items-center justify-between gap-3
-                    rounded-lg px-3 py-2 text-sm
+                    rounded-lg px-3 py-2.5 text-sm
                     ${pathname.startsWith("/student/batches")
                       ? "bg-brand-50 text-brand-700 font-medium"
                       : "text-ink-600 hover:bg-page"
@@ -121,7 +118,7 @@ export default function AppShell({ title, children }) {
                           key={b.id}
                           to={`/student/batches/${b.id}`}
                           onClick={() => setDrawerOpen(false)}
-                          className={`block rounded-lg px-3 py-1.5 text-sm truncate
+                          className={`block rounded-lg px-3 py-2 text-sm truncate
                             ${pathname === `/student/batches/${b.id}`
                               ? "bg-brand-50 text-brand-700 font-medium"
                               : "text-ink-600 hover:bg-page"
@@ -131,12 +128,10 @@ export default function AppShell({ title, children }) {
                         </Link>
                       ))
                     )}
-
-                    {/* নতুন batch-এ join — সবসময় দেখা যাবে */}
                     <Link
                       to="/student/batches"
                       onClick={() => setDrawerOpen(false)}
-                      className="block rounded-lg px-3 py-1.5 text-sm
+                      className="block rounded-lg px-3 py-2 text-sm
                         text-brand-600 font-medium hover:bg-brand-50"
                     >
                       + Join Room
@@ -161,13 +156,14 @@ export default function AppShell({ title, children }) {
           )}
         </nav>
 
-        <div className="border-t border-line p-3">
+        <div className="border-t border-line p-3 safe-bottom">
           <div className="px-3 py-1.5 text-xs text-ink-400 truncate">
             {user?.email}
           </div>
           <button
             onClick={handleLogout}
-            className="w-full rounded-lg px-3 py-2 text-left text-sm text-ink-600 hover:bg-page"
+            className="w-full rounded-lg px-3 py-2.5 text-left text-sm
+              text-ink-600 hover:bg-page active:bg-page"
           >
             ↩ {t("logout")}
           </button>
@@ -177,59 +173,55 @@ export default function AppShell({ title, children }) {
   }
 
   return (
-    <div className="min-h-screen md:flex">
-      {/* Sidebar — desktop */}
+    <div className="min-h-dvh md:flex bg-page">
+      {/* Desktop sidebar */}
       <aside className="hidden md:flex md:w-56 md:flex-col border-r border-line
-        bg-surface md:sticky md:top-0 md:h-screen">
+        bg-surface md:sticky md:top-0 md:h-dvh">
         <div className="px-5 py-5 text-lg font-bold text-brand-600">Agami</div>
         <SidebarContent />
       </aside>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col pb-14 md:pb-0">
-        <header className="sticky top-0 z-10 flex items-center justify-between
-          border-b border-line bg-surface px-4 py-3 md:px-6">
-          <div className="flex items-center gap-2">
-            {/* Hamburger — mobile only */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="sticky top-0 z-30 flex items-center justify-between
+          gap-2 border-b border-line bg-surface px-3 h-14 md:px-6">
+          <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={() => setDrawerOpen(true)}
-              className="md:hidden rounded-lg p-1.5 text-ink-600 hover:bg-page"
+              className="md:hidden -ml-1 p-2 rounded-lg text-ink-600 active:bg-page"
               aria-label="Menu"
             >
-              ☰
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M3 6h18M3 12h18M3 18h18" />
+              </svg>
             </button>
-            <span className="md:hidden text-base font-bold text-brand-600">
-              Agami
-            </span>
-            <h1 className="hidden md:block text-base font-semibold">{title}</h1>
+            {/* মোবাইলে page-এর নাম header-এ — নিচে আলাদা করে আর দেখাব না */}
+            <h1 className="text-base font-semibold truncate md:block">
+              {title}
+            </h1>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <NotificationBell />
-            <button
-              onClick={handleLogout}
-              className="md:hidden rounded-lg p-2 text-ink-600 hover:bg-page"
-              aria-label={t("logout")}
-            >
-              ↩
-            </button>
           </div>
         </header>
 
-        <main className="flex-1 px-4 py-5 md:px-6 md:py-6 max-w-5xl w-full mx-auto min-w-0">
-          <h1 className="md:hidden text-lg font-semibold mb-4">{title}</h1>
+        {/* pb — bottom nav (৩.৫rem) + safe area-র জন্য জায়গা */}
+        <main className="flex-1 px-3 py-4 md:px-6 md:py-6 max-w-5xl w-full
+          mx-auto min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))]
+          md:pb-6">
           {children}
         </main>
       </div>
 
-      {/* Bottom nav — mobile */}
-      <nav className="fixed bottom-0 inset-x-0 z-10 flex border-t border-line
-        bg-surface md:hidden">
-        {items.map((item) => (
+      {/* Mobile bottom nav */}
+      <nav className="fixed bottom-0 inset-x-0 z-30 flex border-t border-line
+        bg-surface md:hidden safe-bottom-nav">
+        {mobileItems.map((item) => (
           <NavLink key={item.to} item={item} active={isActive(item.to)} mobile />
         ))}
       </nav>
 
-      {/* Mobile drawer — hamburger চাপলে খোলে */}
       <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <SidebarContent />
       </MobileDrawer>
