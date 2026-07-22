@@ -6,7 +6,7 @@ import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
 import ReferEarn from "./ReferEarn";
-
+//sjifeiofioefiewfnoie
 const daysLeft = (iso) =>
   Math.max(0, Math.ceil((new Date(iso) - new Date()) / 86400000));
 
