@@ -1,9 +1,8 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import client from "../../api/client";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
 import RichTextEditor from "../../components/RichTextEditor";
-import { POST_TYPES } from "../../lib/postTypes";
+import { getPostTypes } from "../../lib/postTypes";
 
 const EMPTY = {
   post_type: "ANNOUNCEMENT",
@@ -21,58 +20,55 @@ const plainText = (html) => {
 };
 
 export default function Composer({ batchId, onPosted }) {
+  const { t } = useTranslation();
+  const POST_TYPES = getPostTypes();
+
   const [form, setForm] = useState(EMPTY);
   const [file, setFile] = useState(null);
-  const [filePreview, setFilePreview] = useState(null);
-  const [expanded, setExpanded] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const [open, setOpen] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [resetKey, setResetKey] = useState(0);
 
   const bodyText = plainText(form.body);
   const canSend = form.title.trim() || bodyText || file;
+  const isImage = file?.type?.startsWith("image/");
 
-  const set = (key) => (e) =>
+  const set = (k) => (e) =>
     setForm({
       ...form,
-      [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value,
+      [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value,
     });
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0] || null;
-    if (selectedFile) {
-      setFile(selectedFile);
-      if (selectedFile.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onloadend = () => setFilePreview(reader.result);
-        reader.readAsDataURL(selectedFile);
-      } else {
-        setFilePreview(null);
-      }
-    } else {
-      setFile(null);
-      setFilePreview(null);
-    }
+  const pickFile = (e) => {
+    const f = e.target.files[0] || null;
+    setFile(f);
+    if (f?.type.startsWith("image/")) {
+      const r = new FileReader();
+      r.onloadend = () => setPreview(r.result);
+      r.readAsDataURL(f);
+    } else setPreview(null);
   };
 
-  const removeFile = () => {
+  const clearFile = () => {
     setFile(null);
-    setFilePreview(null);
-    const fileInput = document.getElementById("file-upload");
-    if (fileInput) fileInput.value = "";
+    setPreview(null);
+    const el = document.getElementById("composer-file");
+    if (el) el.value = "";
   };
 
-  const doSubmit = async () => {
+  const submit = async () => {
     if (!canSend || loading) return;
     setLoading(true);
     setErrors({});
 
-    const finalTitle =
-      form.title.trim() || bodyText.slice(0, 60) || POST_TYPES[form.post_type].label;
-
     const fd = new FormData();
     fd.append("post_type", form.post_type);
-    fd.append("title", finalTitle);
+    fd.append(
+      "title",
+      form.title.trim() || bodyText.slice(0, 60) || POST_TYPES[form.post_type].label
+    );
     fd.append("body", form.body);
     fd.append("is_pinned", form.is_pinned);
     if (form.event_date) fd.append("event_date", form.event_date);
@@ -80,78 +76,83 @@ export default function Composer({ batchId, onPosted }) {
     if (file) fd.append("attachment", file);
 
     try {
-      // Content-Type header দিচ্ছি না — axios নিজে boundary সহ বসাবে
       await client.post(`/api/batches/${batchId}/posts/`, fd);
-
       setForm(EMPTY);
-      setFile(null);
-      setFilePreview(null);
-      setExpanded(false);
+      clearFile();
+      setOpen(false);
       setResetKey((k) => k + 1);
-      const fileInput = document.getElementById("file-upload");
-      if (fileInput) fileInput.value = "";
-
       onPosted();
     } catch (err) {
-      console.error("Upload error:", err);
       setErrors(err.response?.data || { detail: "Post করা যায়নি।" });
-      setExpanded(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const isImageFile = file && file.type?.startsWith("image/");
-
   return (
-    <div className="sticky bottom-14 md:bottom-0 -mx-4 md:-mx-6 border-t border-gray-200 bg-white px-4 py-4 md:px-6 shadow-lg">
-      <div className="max-w-4xl mx-auto space-y-3">
-        {/* Type chips */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {Object.entries(POST_TYPES).map(([value, t]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => {
-                setForm({ ...form, post_type: value });
-                setExpanded(true);
-              }}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-200
-                ${
-                  form.post_type === value
-                    ? "bg-gray-900 text-white border border-gray-900"
-                    : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 hover:border-gray-400"
-                }`}
-            >
-              {t.label}
-            </button>
-          ))}
+    <div className="sticky bottom-14 md:bottom-0 -mx-3 md:-mx-6 border-t
+      border-line bg-surface/95 backdrop-blur px-3 py-3 md:px-6 safe-bottom">
+      <div className="max-w-2xl mx-auto">
+        {!open ? (
           <button
-            type="button"
-            onClick={() => setExpanded(!expanded)}
-            className="ml-auto px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 transition-colors"
+            onClick={() => setOpen(true)}
+            className="w-full flex items-center gap-2.5 rounded-full border
+              border-line bg-page px-4 py-2.5 text-sm text-ink-400
+              hover:bg-surface hover:border-ink-300 transition-colors"
           >
-            {expanded ? "ছোট করুন ▾" : "লিখুন ▴"}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            {t("newPost")}
           </button>
-        </div>
+        ) : (
+          <div className="space-y-2.5">
+            {/* Type chips — ছোট, পরিষ্কার */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {Object.entries(POST_TYPES).map(([value, cfg]) => (
+                <button
+                  key={value}
+                  onClick={() => setForm({ ...form, post_type: value })}
+                  className={`rounded-md px-2.5 py-1 text-[11px] font-medium
+                    border transition-colors
+                    ${form.post_type === value
+                      ? "border-ink-900 bg-ink-900 text-white"
+                      : "border-line text-ink-500 hover:border-ink-400 hover:text-ink-700"
+                    }`}
+                >
+                  {cfg.label}
+                </button>
+              ))}
+              <button
+                onClick={() => setOpen(false)}
+                className="ml-auto p-1 text-ink-400 hover:text-ink-600"
+                aria-label="Close"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-        {expanded ? (
-          <div className="space-y-3">
             {form.post_type === "EXAM" && (
-              <Input
+              <input
                 type="datetime-local"
                 value={form.event_date}
                 onChange={set("event_date")}
-                error={errors.event_date?.[0]}
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                  outline-none focus:border-brand-500"
               />
             )}
             {form.post_type === "CONTENT" && (
-              <Input
+              <input
                 type="url"
-                placeholder="https:// — YouTube/Drive link"
+                placeholder="https:// — YouTube / Drive link"
                 value={form.link_url}
                 onChange={set("link_url")}
-                error={errors.link_url?.[0]}
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                  outline-none focus:border-brand-500"
               />
             )}
 
@@ -159,97 +160,81 @@ export default function Composer({ batchId, onPosted }) {
               key={resetKey}
               value={form.body}
               onChange={(html) => setForm((f) => ({ ...f, body: html }))}
-              onEnter={doSubmit}
-              placeholder="এখানে লিখুন… (Enter = পাঠান, Shift+Enter = নতুন লাইন)"
+              onEnter={submit}
+              placeholder={t("writeHere") || "এখানে লিখুন…"}
             />
 
-            {/* File Preview */}
-            {filePreview && isImageFile && (
-              <div className="border border-gray-200 overflow-hidden">
-                <img src={filePreview} alt="Preview" className="max-h-64 w-auto object-contain" />
-              </div>
-            )}
-
-            {file && !isImageFile && (
-              <div className="flex items-center gap-3 border border-gray-200 bg-gray-50 px-4 py-3">
-                <svg className="h-6 w-6 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-700 truncate">{file.name}</p>
-                  <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                </div>
-                <button type="button" onClick={removeFile} className="text-gray-400 hover:text-red-600 transition-colors">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+            {preview && (
+              <div className="relative inline-block">
+                <img src={preview} alt="" className="max-h-40 rounded-lg border border-line" />
+                <button
+                  onClick={clearFile}
+                  className="absolute -top-2 -right-2 rounded-full bg-ink-900
+                    text-white w-6 h-6 flex items-center justify-center text-xs"
+                >
+                  ✕
                 </button>
               </div>
             )}
+            {file && !isImage && (
+              <div className="flex items-center gap-2 rounded-lg bg-page px-3 py-2">
+                <span className="text-sm">📎</span>
+                <span className="flex-1 text-xs truncate">{file.name}</span>
+                <button onClick={clearFile} className="text-ink-400 text-xs">✕</button>
+              </div>
+            )}
 
-            <div className="flex items-center gap-3 flex-wrap">
-              <label className="inline-flex items-center gap-2 border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 hover:border-gray-400 transition-colors">
-                <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+            {Object.values(errors).map((e, i) => (
+              <p key={i} className="text-xs text-err">
+                {Array.isArray(e) ? e[0] : e}
+              </p>
+            ))}
+
+            {/* নিচের সারি */}
+            <div className="flex items-center gap-1">
+              <label className="p-2 rounded-lg text-ink-400 hover:bg-page
+                hover:text-ink-600 cursor-pointer transition-colors"
+                title={t("attachFile")}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
                 </svg>
-                ফাইল/ছবি
-                <input
-                  id="file-upload"
-                  type="file"
-                  className="hidden"
-                  onChange={handleFileChange}
-                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
-                />
+                <input id="composer-file" type="file" className="hidden"
+                  onChange={pickFile}
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" />
               </label>
 
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 ml-auto">
-                <input
-                  type="checkbox"
-                  checked={form.is_pinned}
-                  onChange={set("is_pinned")}
-                  className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-900"
-                />
-                <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-                পিন
-              </label>
-            </div>
-
-            {errors.attachment && <p className="text-sm text-red-600">{errors.attachment[0]}</p>}
-            {errors.title && <p className="text-sm text-red-600">{errors.title[0]}</p>}
-            {errors.detail && <p className="text-sm text-red-600">{errors.detail}</p>}
-
-            <div className="flex justify-end">
-              <Button
-                type="button"
-                className="!w-auto px-8 py-2.5 text-sm font-semibold border border-gray-900 bg-gray-900 text-white hover:bg-gray-800 transition-colors"
-                loading={loading}
-                disabled={!canSend}
-                onClick={doSubmit}
+              <button
+                onClick={() => setForm({ ...form, is_pinned: !form.is_pinned })}
+                className={`p-2 rounded-lg transition-colors
+                  ${form.is_pinned
+                    ? "bg-brand-50 text-brand-600"
+                    : "text-ink-400 hover:bg-page hover:text-ink-600"}`}
+                title={t("pin")}
               >
-                <span className="flex items-center gap-2">
-                  পাঠান
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </span>
-              </Button>
+                <svg width="18" height="18" viewBox="0 0 24 24"
+                  fill={form.is_pinned ? "currentColor" : "none"}
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </button>
+
+              <button
+                onClick={submit}
+                disabled={!canSend || loading}
+                className="ml-auto inline-flex items-center gap-1.5 rounded-lg
+                  bg-ink-900 px-4 py-2 text-sm font-medium text-white
+                  disabled:opacity-40 disabled:cursor-not-allowed
+                  hover:bg-ink-800 transition-colors"
+              >
+                {loading ? "…" : t("send")}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </button>
             </div>
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            className="w-full text-left border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500 hover:bg-gray-100 hover:border-gray-400 transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.464z" />
-              </svg>
-              কিছু লিখুন…
-            </span>
-          </button>
         )}
       </div>
     </div>

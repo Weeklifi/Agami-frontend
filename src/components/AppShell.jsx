@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import NotificationBell from "./NotificationBell";
 import MobileDrawer from "./MobileDrawer";
 
-export default function AppShell({ title, children }) {
+export default function AppShell({ title, children, sidebar = null }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -87,7 +87,9 @@ export default function AppShell({ title, children }) {
     return (
       <>
         <nav className="flex-1 space-y-1 px-3 overflow-y-auto">
-          {user?.role === "STUDENT" ? (
+          {sidebar ? (
+            sidebar
+          ) : user?.role === "STUDENT" ? (
             <>
               <div>
                 <button
@@ -196,7 +198,6 @@ export default function AppShell({ title, children }) {
                 <path d="M3 6h18M3 12h18M3 18h18" />
               </svg>
             </button>
-            {/* মোবাইলে page-এর নাম header-এ — নিচে আলাদা করে আর দেখাব না */}
             <h1 className="text-base font-semibold truncate md:block">
               {title}
             </h1>
@@ -206,7 +207,6 @@ export default function AppShell({ title, children }) {
           </div>
         </header>
 
-        {/* pb — bottom nav (৩.৫rem) + safe area-র জন্য জায়গা */}
         <main className="flex-1 px-3 py-4 md:px-6 md:py-6 max-w-5xl w-full
           mx-auto min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))]
           md:pb-6">
