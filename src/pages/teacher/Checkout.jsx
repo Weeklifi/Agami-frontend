@@ -11,10 +11,8 @@ export default function Checkout() {
 
   const [plan, setPlan] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
   const [error, setError] = useState("");
 
-  // Professional info form
   const [form, setForm] = useState({
     institution_name: "",
     subject: "",
@@ -22,12 +20,10 @@ export default function Checkout() {
     district: "",
   });
 
-  // Referral
   const [refCode, setRefCode] = useState("");
   const [refState, setRefState] = useState(null);
   const [validating, setValidating] = useState(false);
 
-  // Pricing
   const [pricing, setPricing] = useState(null);
   const [reason, setReason] = useState(null);
 
@@ -37,37 +33,36 @@ export default function Checkout() {
       setPlan(list.find((p) => p.id === planId) || null);
     });
 
-    const savedRef = localStorage.getItem("referral_code");
-    if (savedRef) {
-      setRefCode(savedRef);
-      validateCode(savedRef);
+    const saved = localStorage.getItem("referral_code");
+    if (saved) {
+      setRefCode(saved);
+      validateCode(saved);
     }
 
-    client.get("/api/referrals/profile/").then((res) => {
-      setForm((f) => ({
-        ...f,
-        institution_name: res.data.institution_name || "",
-        subject: res.data.subject || "",
-        contact_number: res.data.contact_number || "",
-        district: res.data.district || "",
-      }));
-    }).catch(() => {});
+    client
+      .get("/api/referrals/profile/")
+      .then((res) =>
+        setForm((f) => ({
+          ...f,
+          institution_name: res.data.institution_name || "",
+          subject: res.data.subject || "",
+          contact_number: res.data.contact_number || "",
+          district: res.data.district || "",
+        }))
+      )
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planId]);
 
   useEffect(() => {
-    if (!plan) return;
-    recalcPrice();
+    if (plan) recalcPrice();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plan, refState]);
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
   const validateCode = async (code) => {
-    if (!code.trim()) {
-      setRefState(null);
-      return;
-    }
+    if (!code.trim()) return setRefState(null);
     setValidating(true);
     try {
       const { data } = await client.post("/api/referrals/validate-code/", {
@@ -103,16 +98,24 @@ export default function Checkout() {
     }
   };
 
+  // ✅ এখন আসল gateway — SSLCommerz-এ redirect
   const pay = async () => {
     setBusy(true);
     setError("");
     try {
-      await client.post("/api/subscriptions/subscribe/", { plan_id: planId });
+      // Profile তথ্য আগে সেভ করি
+      await client.patch("/api/referrals/profile/", form).catch(() => {});
+
+      const { data } = await client.post("/api/payments/subscribe/", {
+        plan_id: planId,
+        referral_code: refState?.valid ? refCode.trim() : "",
+      });
+
       localStorage.removeItem("referral_code");
-      setDone(true);
+      // SSLCommerz-এর payment page-এ পাঠাই
+      window.location.href = data.gateway_url;
     } catch (err) {
-      setError(err.response?.data?.detail || "Payment ব্যর্থ হয়েছে।");
-    } finally {
+      setError(err.response?.data?.detail || "Payment শুরু করা যায়নি।");
       setBusy(false);
     }
   };
@@ -121,27 +124,6 @@ export default function Checkout() {
     return (
       <AppShell title="Checkout">
         <p className="text-sm text-ink-400">লোড হচ্ছে…</p>
-      </AppShell>
-    );
-
-  if (done)
-    return (
-      <AppShell title="Payment সফল">
-        <div className="max-w-md mx-auto text-center py-8">
-          <div className="text-5xl mb-4">🎉</div>
-          <h2 className="text-xl font-bold">Payment সফল হয়েছে!</h2>
-          <p className="mt-2 text-sm text-ink-600">
-            "{plan.name}" এখন active। আপনি এখন batch তৈরি করতে পারবেন।
-          </p>
-          <div className="mt-6">
-            <Button
-              className="!w-auto px-6 mx-auto"
-              onClick={() => navigate("/teacher/subscription")}
-            >
-              Subscription-এ ফিরে যান
-            </Button>
-          </div>
-        </div>
       </AppShell>
     );
 
@@ -155,16 +137,14 @@ export default function Checkout() {
   return (
     <AppShell title="Checkout">
       <div className="max-w-md mx-auto space-y-4">
-        {/* Professional info */}
         <Card className="space-y-3">
           <h2 className="text-base font-bold">আপনার তথ্য</h2>
-          <FormField label="কোচিং সেন্টারের নাম" value={form.institution_name} onChange={set("institution_name")} />
-          <FormField label="কী পড়ান" value={form.subject} onChange={set("subject")} />
-          <FormField label="মোবাইল নম্বর" value={form.contact_number} onChange={set("contact_number")} />
-          <FormField label="জেলা" value={form.district} onChange={set("district")} />
+          <Field label="কোচিং সেন্টারের নাম" value={form.institution_name} onChange={set("institution_name")} />
+          <Field label="কী পড়ান" value={form.subject} onChange={set("subject")} />
+          <Field label="মোবাইল নম্বর" value={form.contact_number} onChange={set("contact_number")} />
+          <Field label="জেলা" value={form.district} onChange={set("district")} />
         </Card>
 
-        {/* Referral code */}
         <Card className="space-y-2">
           <label className="text-sm font-semibold">Referral Code (থাকলে)</label>
           <div className="flex gap-2">
@@ -189,7 +169,7 @@ export default function Checkout() {
           </div>
           {refState?.valid && (
             <p className="text-xs text-ok">
-              ✓ {refState.referrer_name}-এর কোড — {refState.discount_percent}% ছাড় প্রযোজ্য
+              ✓ {refState.referrer_name}-এর কোড — {refState.discount_percent}% ছাড়
             </p>
           )}
           {refState && !refState.valid && (
@@ -197,18 +177,11 @@ export default function Checkout() {
           )}
         </Card>
 
-        {/* Order summary */}
         <Card>
           <h2 className="text-base font-bold mb-4">Order সারসংক্ষেপ</h2>
 
-          <div className="flex items-center justify-between py-2 border-b border-line">
-            <span className="text-sm text-ink-600">Plan</span>
-            <span className="text-sm font-medium">{plan.name}</span>
-          </div>
-          <div className="flex items-center justify-between py-2 border-b border-line">
-            <span className="text-sm text-ink-600">মূল দাম</span>
-            <span className="text-sm">৳{Math.round(price.base_price)}</span>
-          </div>
+          <Row label="Plan" value={plan.name} />
+          <Row label="মূল দাম" value={`৳${Math.round(price.base_price)}`} />
 
           {price.discount_percent > 0 && (
             <div className="flex items-center justify-between py-2 border-b border-line text-ok">
@@ -224,39 +197,32 @@ export default function Checkout() {
 
           <div className="flex items-center justify-between py-3">
             <span className="text-sm font-semibold">মোট</span>
-            <span className="text-xl font-bold">৳{Math.round(price.final_price)}</span>
+            <span className="text-xl font-bold">
+              ৳{Math.round(price.final_price)}
+            </span>
           </div>
 
-          {price.discount_percent > 0 && (
-            <div className="rounded-lg bg-emerald-50 p-2.5 text-xs text-ok text-center">
-              🎉 আপনি {price.discount_percent}% ছাড় পেয়েছেন!
-            </div>
-          )}
+          {error && <p className="mt-2 text-sm text-err">{error}</p>}
 
-          <div className="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-warn leading-relaxed">
-            💳 অনলাইন gateway (bKash/Nagad/Card) শীঘ্রই যুক্ত হবে। এখন dev mode-এ
-            "Pay করুন" চাপলে সরাসরি activate হবে।
-          </div>
-
-          {error && <p className="mt-3 text-sm text-err">{error}</p>}
-
-          <div className="mt-5 space-y-2">
+          <div className="mt-4 space-y-2">
             <Button loading={busy} onClick={pay}>
-              💳 ৳{Math.round(price.final_price)} Pay করুন
+              💳 ৳{Math.round(price.final_price)} — Pay করুন
             </Button>
             <Button variant="secondary" onClick={() => navigate("/teacher/plans")}>
               বাতিল
             </Button>
           </div>
-        </Card>
 
-        <p className="text-center text-xs text-ink-400">🔒 আপনার তথ্য সুরক্ষিত</p>
+          <p className="mt-3 text-center text-[11px] text-ink-400">
+            bKash · Nagad · Rocket · Card — SSLCommerz-এর নিরাপদ gateway
+          </p>
+        </Card>
       </div>
     </AppShell>
   );
 }
 
-function FormField({ label, value, onChange }) {
+function Field({ label, value, onChange }) {
   return (
     <div>
       <label className="text-xs text-ink-600 block mb-1">{label}</label>
@@ -266,6 +232,15 @@ function FormField({ label, value, onChange }) {
         className="w-full rounded-lg border border-line px-3.5 py-2 text-sm
           outline-none focus:border-brand-500"
       />
+    </div>
+  );
+}
+
+function Row({ label, value }) {
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-line">
+      <span className="text-sm text-ink-600">{label}</span>
+      <span className="text-sm font-medium">{value}</span>
     </div>
   );
 }

@@ -71,9 +71,15 @@ export default function Payments() {
   };
 
   // Gateway এখনো নেই — placeholder। Deploy-এর পরে এখানেই SSLCommerz redirect বসবে।
-  const payWithGateway = (recordId) => {
-    setOpenForm(null);
-    setGatewayMsg(recordId);
+  const payWithGateway = async (recordId) => {
+    try {
+      const { data } = await client.post(
+        `/api/payments/records/${recordId}/pay/`
+      );
+      window.location.href = data.gateway_url;
+    } catch (err) {
+      alert(err.response?.data?.detail || "Payment শুরু করা যায়নি।");
+    }
   };
 
   return (

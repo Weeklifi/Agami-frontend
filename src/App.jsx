@@ -20,6 +20,7 @@ import Checkout from "./pages/teacher/Checkout";
 import Profile from "./pages/teacher/Profile";
 import BulkSms from "./pages/teacher/BulkSms";
 import SmsRecharge from "./pages/teacher/SmsRecharge";
+import PaymentResult from "./pages/payment/PaymentResult";
 function Home() {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -153,6 +154,14 @@ export default function App() {
 <Route path="/teacher/sms/recharge" element={
   <ProtectedRoute role="TEACHER"><SmsRecharge /></ProtectedRoute>
 } />
+<Route
+  path="/payment/:status"
+  element={
+    <ProtectedRoute>
+      <PaymentResult />
+    </ProtectedRoute>
+  }
+/>
         </Routes>
       </BrowserRouter>
     </AuthProvider>

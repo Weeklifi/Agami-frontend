@@ -27,8 +27,18 @@ export default function SmsRecharge() {
   }, []);
 
   // Gateway এখনো নেই — placeholder
-  const buy = () => {
-    setGatewayMsg(true);
+  const buy = async () => {
+    if (!selected) return;
+    setBusy(true);
+    try {
+      const { data } = await client.post("/api/payments/sms-credit/", {
+        credits: selected.credits,
+      });
+      window.location.href = data.gateway_url;
+    } catch (err) {
+      alert(err.response?.data?.detail || "Payment শুরু করা যায়নি।");
+      setBusy(false);
+    }
   };
 
   return (
