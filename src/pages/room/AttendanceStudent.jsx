@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Check, X, CheckCircle2 } from "lucide-react";
 import client from "../../api/client";
+import StatTile from "../../components/ui/StatTile";
 
 const monthStr = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -23,21 +25,24 @@ export default function AttendanceStudent({ batchId }) {
     setMonth(d);
   };
 
-  const tone = (pct) => {
-    if (pct >= 80) return "text-ok";
-    if (pct >= 60) return "text-warn";
-    return "text-err";
-  };
+  const grad = (pct) =>
+    pct >= 80 ? "grad-emerald" : pct >= 60 ? "grad-brand" : "grad-violet";
 
   return (
     <div className="space-y-4">
       {/* মাস নির্বাচন */}
       <div className="flex items-center justify-between">
-        <button onClick={() => shiftMonth(-1)} className="px-2 py-1 hover:bg-page rounded">‹</button>
-        <span className="text-sm font-medium">
+        <button onClick={() => shiftMonth(-1)}
+          className="grid h-9 w-9 place-items-center rounded-lg hover:bg-page">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <span className="text-sm font-semibold">
           {month.toLocaleString("bn-BD", { month: "long", year: "numeric" })}
         </span>
-        <button onClick={() => shiftMonth(1)} className="px-2 py-1 hover:bg-page rounded">›</button>
+        <button onClick={() => shiftMonth(1)}
+          className="grid h-9 w-9 place-items-center rounded-lg hover:bg-page">
+          <ChevronRight className="h-5 w-5" />
+        </button>
       </div>
 
       {data === null ? (
@@ -48,58 +53,52 @@ export default function AttendanceStudent({ batchId }) {
         </p>
       ) : (
         <>
-          {/* বড় করে শতাংশ */}
-          <div className="text-center py-4">
-            <p className={`text-4xl font-bold ${tone(data.percentage)}`}>
-              {data.percentage}%
+          {/* Hero — শতাংশ */}
+          <div className={`${grad(data.percentage)} shadow-brand relative overflow-hidden
+            rounded-2xl p-5 text-center text-white`}>
+            <p className="text-xs opacity-90">উপস্থিতির হার</p>
+            <p className="mt-1 text-4xl font-extrabold">{data.percentage}%</p>
+            <p className="mt-1 flex items-center justify-center gap-1.5 text-xs opacity-90">
+              <CheckCircle2 className="h-4 w-4" /> {data.present} / {data.total_classes} ক্লাসে উপস্থিত
             </p>
-            <p className="text-xs text-ink-600 mt-1">উপস্থিতির হার</p>
+            <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32
+              rounded-full bg-white/10" />
           </div>
 
           {/* Summary */}
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-lg bg-emerald-50 py-2">
-              <p className="text-lg font-semibold text-ok">{data.present}</p>
-              <p className="text-xs text-ink-600">উপস্থিত</p>
-            </div>
-            <div className="rounded-lg bg-red-50 py-2">
-              <p className="text-lg font-semibold text-err">{data.absent}</p>
-              <p className="text-xs text-ink-600">অনুপস্থিত</p>
-            </div>
-            <div className="rounded-lg bg-page py-2">
-              <p className="text-lg font-semibold">{data.total_classes}</p>
-              <p className="text-xs text-ink-600">মোট ক্লাস</p>
-            </div>
+          <div className="grid grid-cols-3 gap-2">
+            <StatTile value={data.present} label="উপস্থিত" tone="ok" />
+            <StatTile value={data.absent} label="অনুপস্থিত" tone="err" />
+            <StatTile value={data.total_classes} label="মোট ক্লাস" />
           </div>
 
           {/* দিনভিত্তিক তালিকা */}
           {data.days.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-ink-600 mb-2">
-                দিনভিত্তিক
-              </p>
-              <ul className="divide-y divide-line">
-                {data.days.map((d) => (
-                  <li
-                    key={d.date}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <span className="text-sm">
-                      {new Date(d.date).toLocaleDateString("bn-BD", {
-                        day: "numeric",
-                        month: "short",
-                        weekday: "short",
-                      })}
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${
-                        d.status === "PRESENT" ? "text-ok" : "text-err"
-                      }`}
-                    >
-                      {d.status === "PRESENT" ? "✓ উপস্থিত" : "✗ অনুপস্থিত"}
-                    </span>
-                  </li>
-                ))}
+              <p className="text-xs font-semibold text-ink-600 mb-2">দিনভিত্তিক</p>
+              <ul className="rounded-2xl border border-line bg-surface shadow-soft
+                divide-y divide-line overflow-hidden">
+                {data.days.map((d) => {
+                  const present = d.status === "PRESENT";
+                  return (
+                    <li key={d.date} className="flex items-center gap-2.5 px-3 py-2.5">
+                      <span className={`grid h-7 w-7 place-items-center rounded-lg
+                        ${present ? "bg-emerald-50 text-ok" : "bg-red-50 text-err"}`}>
+                        {present ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                      </span>
+                      <span className="flex-1 text-sm">
+                        {new Date(d.date).toLocaleDateString("bn-BD", {
+                          day: "numeric",
+                          month: "short",
+                          weekday: "short",
+                        })}
+                      </span>
+                      <span className={`text-xs font-semibold ${present ? "text-ok" : "text-err"}`}>
+                        {present ? "উপস্থিত" : "অনুপস্থিত"}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}

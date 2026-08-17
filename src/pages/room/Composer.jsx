@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Pencil, Paperclip, Pin, ArrowRight, X } from "lucide-react";
 import client from "../../api/client";
 import RichTextEditor from "../../components/RichTextEditor";
 import { getPostTypes } from "../../lib/postTypes";
@@ -97,28 +98,25 @@ export default function Composer({ batchId, onPosted }) {
           <button
             onClick={() => setOpen(true)}
             className="w-full flex items-center gap-2.5 rounded-full border
-              border-line bg-page px-4 py-2.5 text-sm text-ink-400
-              hover:bg-surface hover:border-ink-300 transition-colors"
+              border-line bg-page px-4 py-3 text-sm text-ink-400
+              hover:bg-surface hover:border-brand-300 transition-colors"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-            </svg>
+            <Pencil className="h-4 w-4" />
             {t("newPost")}
           </button>
         ) : (
           <div className="space-y-2.5">
-            {/* Type chips — ছোট, পরিষ্কার */}
+            {/* Type chips */}
             <div className="flex items-center gap-1.5 flex-wrap">
               {Object.entries(POST_TYPES).map(([value, cfg]) => (
                 <button
                   key={value}
                   onClick={() => setForm({ ...form, post_type: value })}
-                  className={`rounded-md px-2.5 py-1 text-[11px] font-medium
+                  className={`rounded-full px-3 py-1 text-[11px] font-semibold
                     border transition-colors
                     ${form.post_type === value
-                      ? "border-ink-900 bg-ink-900 text-white"
-                      : "border-line text-ink-500 hover:border-ink-400 hover:text-ink-700"
+                      ? "border-brand-600 bg-brand-600 text-white"
+                      : "border-line text-ink-500 hover:border-brand-300 hover:text-ink-700"
                     }`}
                 >
                   {cfg.label}
@@ -129,10 +127,7 @@ export default function Composer({ batchId, onPosted }) {
                 className="ml-auto p-1 text-ink-400 hover:text-ink-600"
                 aria-label="Close"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
+                <X className="h-4 w-4" />
               </button>
             </div>
 
@@ -141,8 +136,8 @@ export default function Composer({ batchId, onPosted }) {
                 type="datetime-local"
                 value={form.event_date}
                 onChange={set("event_date")}
-                className="w-full rounded-lg border border-line px-3 py-2 text-sm
-                  outline-none focus:border-brand-500"
+                className="w-full rounded-xl border border-line px-3 py-2.5 text-sm
+                  outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
               />
             )}
             {form.post_type === "CONTENT" && (
@@ -151,8 +146,8 @@ export default function Composer({ batchId, onPosted }) {
                 placeholder="https:// — YouTube / Drive link"
                 value={form.link_url}
                 onChange={set("link_url")}
-                className="w-full rounded-lg border border-line px-3 py-2 text-sm
-                  outline-none focus:border-brand-500"
+                className="w-full rounded-xl border border-line px-3 py-2.5 text-sm
+                  outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
               />
             )}
 
@@ -166,21 +161,23 @@ export default function Composer({ batchId, onPosted }) {
 
             {preview && (
               <div className="relative inline-block">
-                <img src={preview} alt="" className="max-h-40 rounded-lg border border-line" />
+                <img src={preview} alt="" className="max-h-40 rounded-xl border border-line" />
                 <button
                   onClick={clearFile}
-                  className="absolute -top-2 -right-2 rounded-full bg-ink-900
-                    text-white w-6 h-6 flex items-center justify-center text-xs"
+                  className="absolute -top-2 -right-2 grid h-6 w-6 place-items-center
+                    rounded-full bg-ink-900 text-white"
                 >
-                  ✕
+                  <X className="h-3.5 w-3.5" />
                 </button>
               </div>
             )}
             {file && !isImage && (
-              <div className="flex items-center gap-2 rounded-lg bg-page px-3 py-2">
-                <span className="text-sm">📎</span>
+              <div className="flex items-center gap-2 rounded-xl bg-page px-3 py-2">
+                <Paperclip className="h-4 w-4 text-ink-400" />
                 <span className="flex-1 text-xs truncate">{file.name}</span>
-                <button onClick={clearFile} className="text-ink-400 text-xs">✕</button>
+                <button onClick={clearFile} className="text-ink-400">
+                  <X className="h-3.5 w-3.5" />
+                </button>
               </div>
             )}
 
@@ -195,10 +192,7 @@ export default function Composer({ batchId, onPosted }) {
               <label className="p-2 rounded-lg text-ink-400 hover:bg-page
                 hover:text-ink-600 cursor-pointer transition-colors"
                 title={t("attachFile")}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
-                </svg>
+                <Paperclip className="h-[18px] w-[18px]" />
                 <input id="composer-file" type="file" className="hidden"
                   onChange={pickFile}
                   accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" />
@@ -212,26 +206,20 @@ export default function Composer({ batchId, onPosted }) {
                     : "text-ink-400 hover:bg-page hover:text-ink-600"}`}
                 title={t("pin")}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24"
-                  fill={form.is_pinned ? "currentColor" : "none"}
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
+                <Pin className="h-[18px] w-[18px]"
+                  fill={form.is_pinned ? "currentColor" : "none"} />
               </button>
 
               <button
                 onClick={submit}
                 disabled={!canSend || loading}
-                className="ml-auto inline-flex items-center gap-1.5 rounded-lg
-                  bg-ink-900 px-4 py-2 text-sm font-medium text-white
-                  disabled:opacity-40 disabled:cursor-not-allowed
-                  hover:bg-ink-800 transition-colors"
+                className="ml-auto inline-flex items-center gap-1.5 rounded-xl
+                  grad-brand px-4 py-2.5 text-sm font-semibold text-white shadow-brand
+                  disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none
+                  hover:brightness-105 transition"
               >
                 {loading ? "…" : t("send")}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
+                <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           </div>

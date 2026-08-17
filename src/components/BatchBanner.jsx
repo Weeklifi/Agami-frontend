@@ -1,3 +1,4 @@
+import { GraduationCap } from "lucide-react";
 import { batchGradient } from "../lib/colors";
 
 export default function BatchBanner({ batch }) {
@@ -19,8 +20,8 @@ export default function BatchBanner({ batch }) {
         </p>
       )}
       {batch.teacher_name && (
-        <p className="relative mt-1 text-xs md:text-sm text-white/70">
-          🎓 {batch.teacher_name}
+        <p className="relative mt-1 flex items-center gap-1.5 text-xs md:text-sm text-white/70">
+          <GraduationCap className="h-4 w-4" /> {batch.teacher_name}
         </p>
       )}
     </div>

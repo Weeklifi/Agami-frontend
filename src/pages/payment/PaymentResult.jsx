@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { CheckCircle2, XCircle, AlertTriangle, Loader2, HelpCircle, FileText } from "lucide-react";
 import client from "../../api/client";
 import AppShell from "../../components/AppShell";
 import Card from "../../components/ui/Card";
@@ -15,8 +16,6 @@ export default function PaymentResult() {
   const [checking, setChecking] = useState(status === "success");
   const tries = useRef(0);
 
-  // Success হলে backend-এ যাচাই করি — IPN একটু দেরিতে আসতে পারে,
-  // তাই কয়েকবার চেষ্টা করি (৩ সেকেন্ড পরপর, সর্বোচ্চ ৫ বার)
   useEffect(() => {
     if (status !== "success" || !tranId) return;
 
@@ -40,29 +39,35 @@ export default function PaymentResult() {
 
   const config = {
     success: {
-      icon: "🎉",
+      icon: CheckCircle2,
       title: "Payment সফল হয়েছে!",
       tone: "text-ok",
+      tile: "bg-emerald-50 text-ok",
       body: "আপনার লেনদেন সম্পন্ন হয়েছে।",
     },
     failed: {
-      icon: "❌",
+      icon: XCircle,
       title: "Payment ব্যর্থ হয়েছে",
       tone: "text-err",
+      tile: "bg-red-50 text-err",
       body: "টাকা কাটা হয়ে থাকলে ২৪ ঘণ্টার মধ্যে ফেরত আসবে।",
     },
     cancelled: {
-      icon: "⚠️",
+      icon: AlertTriangle,
       title: "Payment বাতিল হয়েছে",
       tone: "text-warn",
+      tile: "bg-amber-50 text-warn",
       body: "আপনি লেনদেনটি বাতিল করেছেন।",
     },
   }[status] || {
-    icon: "❓",
+    icon: HelpCircle,
     title: "অজানা অবস্থা",
     tone: "text-ink-600",
+    tile: "bg-slate-100 text-slate-500",
     body: "",
   };
+
+  const Icon = config.icon;
 
   return (
     <AppShell title="Payment">
@@ -70,7 +75,7 @@ export default function PaymentResult() {
         <Card className="text-center py-10">
           {checking ? (
             <>
-              <div className="text-4xl mb-3 animate-pulse">⏳</div>
+              <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-brand-500" />
               <p className="text-base font-semibold">যাচাই করা হচ্ছে…</p>
               <p className="mt-1 text-sm text-ink-600">
                 একটু অপেক্ষা করুন, page বন্ধ করবেন না।
@@ -78,18 +83,18 @@ export default function PaymentResult() {
             </>
           ) : (
             <>
-              <div className="text-5xl mb-3">{config.icon}</div>
-              <h2 className={`text-xl font-bold ${config.tone}`}>
-                {config.title}
-              </h2>
+              <div className={`mx-auto mb-4 grid h-20 w-20 place-items-center
+                rounded-3xl ${config.tile}`}>
+                <Icon className="h-11 w-11" strokeWidth={2} />
+              </div>
+              <h2 className={`text-xl font-bold ${config.tone}`}>{config.title}</h2>
               <p className="mt-2 text-sm text-ink-600">{config.body}</p>
 
               {txn && txn.status === "SUCCESS" && (
-                <div className="mt-4 rounded-lg bg-page p-3 text-left text-xs
-                  space-y-1">
+                <div className="mt-4 rounded-xl bg-page p-4 text-left text-xs space-y-2">
                   <div className="flex justify-between">
                     <span className="text-ink-600">পরিমাণ</span>
-                    <span className="font-semibold">৳{Math.round(txn.amount)}</span>
+                    <span className="font-bold">৳{Math.round(txn.amount)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-ink-600">Transaction ID</span>
@@ -98,11 +103,14 @@ export default function PaymentResult() {
                 </div>
               )}
 
-              {/* IPN দেরি হলে — টাকা কেটেছে কিন্তু status এখনো আসেনি */}
               {status === "success" && txn && txn.status !== "SUCCESS" && (
-                <div className="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-warn">
-                  Payment প্রক্রিয়াধীন। কয়েক মিনিটের মধ্যে নিশ্চিত হয়ে যাবে।
-                  না হলে Transaction ID সহ যোগাযোগ করুন।
+                <div className="mt-4 flex items-start gap-2 rounded-xl bg-amber-50 p-3
+                  text-left text-xs text-warn">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>
+                    Payment প্রক্রিয়াধীন। কয়েক মিনিটের মধ্যে নিশ্চিত হয়ে যাবে।
+                    না হলে Transaction ID সহ যোগাযোগ করুন।
+                  </span>
                 </div>
               )}
 

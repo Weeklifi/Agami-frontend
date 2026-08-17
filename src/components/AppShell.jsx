@@ -1,6 +1,10 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
+import {
+  Menu, LayoutDashboard, Users, MessageSquare, CreditCard, User,
+  BookOpen, Wallet, LogOut, ChevronDown, ChevronRight, Plus,
+} from "lucide-react";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import NotificationBell from "./NotificationBell";
@@ -26,16 +30,16 @@ export default function AppShell({ title, children, sidebar = null }) {
 
   const NAV = {
     TEACHER: [
-      { to: "/teacher/batches", label: t("batches"), icon: "▣" },
-      { to: "/teacher", label: t("dashboard"), icon: "▦" },
-      { to: "/teacher/sms", label: "SMS", icon: "✉" },
-      { to: "/teacher/subscription", label: t("subscription"), icon: "◈" },
-      { to: "/teacher/profile", label: "Profile", icon: "◉" },
+      { to: "/teacher/batches", label: t("batches"), icon: Users },
+      { to: "/teacher", label: t("dashboard"), icon: LayoutDashboard },
+      { to: "/teacher/sms", label: "SMS", icon: MessageSquare },
+      { to: "/teacher/subscription", label: t("subscription"), icon: CreditCard },
+      { to: "/teacher/profile", label: "Profile", icon: User },
     ],
     STUDENT: [
-      { to: "/student/batches", label: t("myBatches"), icon: "▣" },
-      { to: "/student", label: t("dashboard"), icon: "▦" },
-      { to: "/student/payments", label: t("payments"), icon: "৳" },
+      { to: "/student/batches", label: t("myBatches"), icon: BookOpen },
+      { to: "/student", label: t("dashboard"), icon: LayoutDashboard },
+      { to: "/student/payments", label: t("payments"), icon: Wallet },
     ],
   };
 
@@ -54,15 +58,16 @@ export default function AppShell({ title, children, sidebar = null }) {
   };
 
   function NavLink({ item, active, mobile = false }) {
+    const Icon = item.icon;
     if (mobile) {
       return (
         <Link
           to={item.to}
-          className={`flex flex-col items-center justify-center gap-0.5 flex-1
+          className={`flex flex-col items-center justify-center gap-1 flex-1
             min-h-[3.5rem] text-[11px] active:bg-page
             ${active ? "text-brand-600 font-semibold" : "text-ink-400"}`}
         >
-          <span className="text-lg leading-none">{item.icon}</span>
+          <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.4 : 2} />
           <span className="truncate max-w-full px-1">{item.label}</span>
         </Link>
       );
@@ -71,13 +76,13 @@ export default function AppShell({ title, children, sidebar = null }) {
       <Link
         to={item.to}
         onClick={() => setDrawerOpen(false)}
-        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm
+        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm
           ${active
-            ? "bg-brand-50 text-brand-700 font-medium"
+            ? "bg-brand-50 text-brand-700 font-semibold"
             : "text-ink-600 hover:bg-page active:bg-page"
           }`}
       >
-        <span className="w-4 text-center">{item.icon}</span>
+        <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
         {item.label}
       </Link>
     );
@@ -95,17 +100,19 @@ export default function AppShell({ title, children, sidebar = null }) {
                 <button
                   onClick={() => setBatchOpen(!batchOpen)}
                   className={`w-full flex items-center justify-between gap-3
-                    rounded-lg px-3 py-2.5 text-sm
+                    rounded-xl px-3 py-2.5 text-sm
                     ${pathname.startsWith("/student/batches")
-                      ? "bg-brand-50 text-brand-700 font-medium"
+                      ? "bg-brand-50 text-brand-700 font-semibold"
                       : "text-ink-600 hover:bg-page"
                     }`}
                 >
                   <span className="flex items-center gap-3">
-                    <span className="w-4 text-center">▣</span>
+                    <BookOpen className="h-[18px] w-[18px]" strokeWidth={2} />
                     {t("myBatches")}
                   </span>
-                  <span className="text-xs">{batchOpen ? "▾" : "▸"}</span>
+                  {batchOpen
+                    ? <ChevronDown className="h-4 w-4" />
+                    : <ChevronRight className="h-4 w-4" />}
                 </button>
 
                 {batchOpen && (
@@ -133,21 +140,21 @@ export default function AppShell({ title, children, sidebar = null }) {
                     <Link
                       to="/student/batches"
                       onClick={() => setDrawerOpen(false)}
-                      className="block rounded-lg px-3 py-2 text-sm
+                      className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm
                         text-brand-600 font-medium hover:bg-brand-50"
                     >
-                      + Join Room
+                      <Plus className="h-4 w-4" /> Join Room
                     </Link>
                   </div>
                 )}
               </div>
 
               <NavLink
-                item={{ to: "/student", label: t("dashboard"), icon: "▦" }}
+                item={{ to: "/student", label: t("dashboard"), icon: LayoutDashboard }}
                 active={pathname === "/student"}
               />
               <NavLink
-                item={{ to: "/student/payments", label: t("payments"), icon: "৳" }}
+                item={{ to: "/student/payments", label: t("payments"), icon: Wallet }}
                 active={pathname.startsWith("/student/payments")}
               />
             </>
@@ -164,10 +171,10 @@ export default function AppShell({ title, children, sidebar = null }) {
           </div>
           <button
             onClick={handleLogout}
-            className="w-full rounded-lg px-3 py-2.5 text-left text-sm
+            className="w-full flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm
               text-ink-600 hover:bg-page active:bg-page"
           >
-            ↩ {t("logout")}
+            <LogOut className="h-[18px] w-[18px]" /> {t("logout")}
           </button>
         </div>
       </>
@@ -175,17 +182,21 @@ export default function AppShell({ title, children, sidebar = null }) {
   }
 
   return (
-    <div className="min-h-dvh md:flex bg-page">
-      {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:w-56 md:flex-col border-r border-line
-        bg-surface md:sticky md:top-0 md:h-dvh">
-        <div className="px-5 py-5 text-lg font-bold text-brand-600">Agami</div>
+    <div className="h-dvh flex flex-col md:flex-row bg-page overflow-hidden">
+      {/* Desktop sidebar — fixed full-height, নিজে scroll করে না */}
+      <aside className="hidden md:flex md:w-56 md:flex-col md:h-dvh shrink-0
+        border-r border-line bg-surface">
+        <div className="flex items-center gap-2.5 px-5 py-5 shrink-0">
+          <div className="grad-brand shadow-brand grid h-9 w-9 place-items-center
+            rounded-xl text-lg font-extrabold text-white">অ</div>
+          <span className="text-lg font-bold text-ink-900">Agami</span>
+        </div>
         <SidebarContent />
       </aside>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 flex items-center justify-between
+      {/* Main column */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
+        <header className="shrink-0 z-10 flex items-center justify-between
           gap-2 border-b border-line bg-surface px-3 h-14 md:px-6">
           <div className="flex items-center gap-2 min-w-0">
             <button
@@ -193,10 +204,7 @@ export default function AppShell({ title, children, sidebar = null }) {
               className="md:hidden -ml-1 p-2 rounded-lg text-ink-600 active:bg-page"
               aria-label="Menu"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M3 6h18M3 12h18M3 18h18" />
-              </svg>
+              <Menu className="h-[22px] w-[22px]" />
             </button>
             <h1 className="text-base font-semibold truncate md:block">
               {title}
@@ -207,10 +215,12 @@ export default function AppShell({ title, children, sidebar = null }) {
           </div>
         </header>
 
-        <main className="flex-1 px-3 py-4 md:px-6 md:py-6 max-w-5xl w-full
-          mx-auto min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))]
-          md:pb-6">
-          {children}
+        {/* শুধু এই অংশটাই scroll হয় */}
+        <main className="flex-1 overflow-y-auto min-h-0">
+          <div className="mx-auto w-full max-w-5xl px-3 py-4 md:px-6 md:py-6
+            pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-6">
+            {children}
+          </div>
         </main>
       </div>
 

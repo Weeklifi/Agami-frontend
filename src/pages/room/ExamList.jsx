@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import { Plus, Trophy, FileText, BarChart3 } from "lucide-react";
 import client from "../../api/client";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Badge from "../../components/ui/Badge";
+import IconTile from "../../components/ui/IconTile";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -58,7 +60,7 @@ export default function ExamList({ batchId, isTeacher, onOpenSheet, onOpenBoard 
     <div className="space-y-4">
       {isTeacher &&
         (creating ? (
-          <div className="space-y-2.5 rounded-lg bg-page p-3">
+          <div className="space-y-2.5 rounded-2xl bg-page p-3">
             <Input
               placeholder="পরীক্ষার নাম — যেমন Chemistry Ch.3"
               value={form.name}
@@ -78,7 +80,7 @@ export default function ExamList({ batchId, isTeacher, onOpenSheet, onOpenBoard 
               />
             </div>
             <div>
-              <label className="text-xs text-ink-600 block mb-1">
+              <label className="text-xs font-medium text-ink-700 block mb-1">
                 Leaderboard-এ কতজন দেখাবে
               </label>
               <select
@@ -86,8 +88,8 @@ export default function ExamList({ batchId, isTeacher, onOpenSheet, onOpenBoard 
                 onChange={(e) =>
                   setForm({ ...form, leaderboard_size: Number(e.target.value) })
                 }
-                className="w-full rounded-lg border border-line px-3 py-2 text-sm
-                  outline-none focus:border-brand-500"
+                className="w-full rounded-xl border border-line px-3 py-2.5 text-sm
+                  outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
               >
                 {[3, 5, 10, 20].map((n) => (
                   <option key={n} value={n}>Top {n}</option>
@@ -109,25 +111,23 @@ export default function ExamList({ batchId, isTeacher, onOpenSheet, onOpenBoard 
             </div>
           </div>
         ) : (
-          <Button
-            variant="secondary"
-            className="text-xs"
-            onClick={() => setCreating(true)}
-          >
-            + নতুন পরীক্ষা
+          <Button variant="secondary" className="text-xs" onClick={() => setCreating(true)}>
+            <Plus className="h-4 w-4" /> নতুন পরীক্ষা
           </Button>
         ))}
 
       {exams.length === 0 ? (
-        <p className="text-sm text-ink-400 text-center py-6">
-          এখনো কোনো পরীক্ষা নেই।
-        </p>
+        <p className="text-sm text-ink-400 text-center py-6">এখনো কোনো পরীক্ষা নেই।</p>
       ) : (
-        <ul className="divide-y divide-line">
+        <ul className="space-y-2">
           {exams.map((ex) => (
-            <li key={ex.id} className="py-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
+            <li key={ex.id} className="rounded-2xl border border-line bg-surface p-3 shadow-soft">
+              <div className="flex items-center gap-3">
+                <IconTile
+                  icon={ex.is_published ? BarChart3 : FileText}
+                  tone={ex.is_published ? "emerald" : "amber"}
+                />
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{ex.name}</p>
                   <p className="text-xs text-ink-400 mt-0.5">
                     {new Date(ex.exam_date).toLocaleDateString("bn-BD", {
@@ -135,17 +135,17 @@ export default function ExamList({ batchId, isTeacher, onOpenSheet, onOpenBoard 
                       month: "long",
                     })}{" "}
                     · পূর্ণমান {ex.total_marks}
-                    {isTeacher && ` · ${ex.result_count} জনের নম্বর দেওয়া`}
+                    {isTeacher && ` · ${ex.result_count} জন`}
                   </p>
                 </div>
                 {isTeacher && (
-                  <Badge tone={ex.is_published ? "ok" : "neutral"}>
+                  <Badge tone={ex.is_published ? "emerald" : "slate"}>
                     {ex.is_published ? "প্রকাশিত" : "খসড়া"}
                   </Badge>
                 )}
               </div>
 
-              <div className="mt-2 flex gap-2 flex-wrap">
+              <div className="mt-2.5 flex gap-2 flex-wrap">
                 {isTeacher && (
                   <>
                     <Button
@@ -168,7 +168,7 @@ export default function ExamList({ batchId, isTeacher, onOpenSheet, onOpenBoard 
                   className="!w-auto text-xs px-3 py-1.5"
                   onClick={() => onOpenBoard(ex)}
                 >
-                  🏆 Leaderboard
+                  <Trophy className="h-3.5 w-3.5" /> Leaderboard
                 </Button>
               </div>
             </li>

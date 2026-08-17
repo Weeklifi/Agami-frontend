@@ -6,13 +6,13 @@ export default function Button({
   ...props
 }) {
   const base =
-    "inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full";
+    "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed w-full active:scale-[.99]";
 
   const variants = {
-    primary: "bg-brand-600 text-white hover:bg-brand-700",
-    secondary:
-      "bg-surface text-ink-900 border border-line hover:bg-page",
+    primary: "grad-brand text-white shadow-brand hover:brightness-105",
+    secondary: "bg-surface text-ink-900 border border-line shadow-soft hover:bg-page",
     ghost: "text-brand-600 hover:bg-brand-50",
+    danger: "bg-err text-white hover:brightness-105",
   };
 
   return (

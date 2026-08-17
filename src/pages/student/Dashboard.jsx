@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Clock, FileText, Wallet, ChevronRight } from "lucide-react";
 import client from "../../api/client";
 import AppShell from "../../components/AppShell";
 import Card from "../../components/ui/Card";
+import IconTile from "../../components/ui/IconTile";
+import { List, ListRow } from "../../components/ui/List";
+import Badge from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
 import { formatDateTime } from "../../lib/postTypes";
 
@@ -11,6 +15,7 @@ const todayPy = (new Date().getDay() + 6) % 7;
 
 export default function StudentDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [exams, setExams] = useState(null);
   const [todayClasses, setTodayClasses] = useState(null);
   const [dueCount, setDueCount] = useState(0);
@@ -20,7 +25,6 @@ export default function StudentDashboard() {
       const { data } = await client.get("/api/batches/my/");
       const batches = data.results;
 
-      // প্রতি batch-এর exam + schedule সমান্তরালে আনো
       const [examArrays, schedArrays] = await Promise.all([
         Promise.all(
           batches.map((b) =>
@@ -73,18 +77,15 @@ export default function StudentDashboard() {
 
         {/* বকেয়া থাকলে — শুধু তখনই */}
         {dueCount > 0 && (
-          <Card className="border-warn">
-            <p className="text-sm">
-              ৳ আপনার <span className="font-semibold">{dueCount} মাসের</span>{" "}
-              বেতন বাকি —{" "}
-              <Link
-                to="/student/payments"
-                className="text-brand-600 hover:underline font-medium"
-              >
-                বিস্তারিত দেখুন
-              </Link>
-            </p>
-          </Card>
+          <Link to="/student/payments" className="block">
+            <Card className="flex items-center gap-3 border-warn/40">
+              <IconTile icon={Wallet} tone="rose" />
+              <p className="flex-1 text-sm">
+                আপনার <span className="font-semibold">{dueCount} মাসের</span> বেতন বাকি
+              </p>
+              <ChevronRight className="h-5 w-5 text-ink-400" />
+            </Card>
+          </Link>
         )}
 
         {/* আজকের ক্লাস */}
@@ -99,22 +100,19 @@ export default function StudentDashboard() {
               </p>
             </Card>
           ) : (
-            <div className="space-y-2">
+            <List>
               {todayClasses.map((s) => (
-                <Card key={s.id}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{s.batchName}</p>
-                      <p className="text-xs text-ink-600">
-                        {s.start_time.slice(0, 5)} – {s.end_time.slice(0, 5)}
-                        {s.location && ` · ${s.location}`}
-                      </p>
-                    </div>
-                    <span className="text-lg">🕕</span>
-                  </div>
-                </Card>
+                <ListRow
+                  key={s.id}
+                  left={<IconTile icon={Clock} tone="indigo" />}
+                  title={s.batchName}
+                  desc={`${s.start_time.slice(0, 5)} – ${s.end_time.slice(0, 5)}${
+                    s.location ? ` · ${s.location}` : ""
+                  }`}
+                  right={<Badge tone="emerald">আজ</Badge>}
+                />
               ))}
-            </div>
+            </List>
           )}
         </div>
 
@@ -130,19 +128,22 @@ export default function StudentDashboard() {
               </p>
             </Card>
           ) : (
-            <div className="space-y-2">
+            <List>
               {exams.map((p) => (
-                <Link key={p.id} to={`/student/batches/${p.batchId}`}>
-                  <Card className="hover:border-brand-500 transition-colors">
-                    <p className="text-sm font-medium">📝 {p.title}</p>
-                    <p className="mt-0.5 text-xs text-warn font-medium">
+                <ListRow
+                  key={p.id}
+                  onClick={() => navigate(`/student/batches/${p.batchId}`)}
+                  left={<IconTile icon={FileText} tone="amber" />}
+                  title={p.title}
+                  desc={p.batchName}
+                  right={
+                    <span className="text-xs font-medium text-warn whitespace-nowrap">
                       {formatDateTime(p.event_date)}
-                    </p>
-                    <p className="mt-0.5 text-xs text-ink-400">{p.batchName}</p>
-                  </Card>
-                </Link>
+                    </span>
+                  }
+                />
               ))}
-            </div>
+            </List>
           )}
         </div>
       </div>

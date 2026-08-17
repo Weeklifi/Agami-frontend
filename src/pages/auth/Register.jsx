@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, ShieldCheck } from "lucide-react";
 import client from "../../api/client";
 import AuthLayout from "../../components/AuthLayout";
 import Button from "../../components/ui/Button";
@@ -56,6 +57,7 @@ export default function Register() {
         </div>
         <Input
           label="Email"
+          icon={Mail}
           type="email"
           placeholder="you@example.com"
           value={form.email}
@@ -64,6 +66,7 @@ export default function Register() {
         />
         <Input
           label="Password"
+          icon={Lock}
           type="password"
           placeholder="••••••••"
           value={form.password}
@@ -71,6 +74,11 @@ export default function Register() {
           error={errors.password?.[0]}
         />
         {errors.detail && <p className="text-sm text-err">{errors.detail}</p>}
+        <div className="flex items-start gap-2 rounded-xl bg-brand-50 px-3 py-2.5
+          text-xs text-brand-700">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>আপনার তথ্য সুরক্ষিত ও এনক্রিপ্টেড থাকে।</span>
+        </div>
         <Button type="submit" loading={loading}>
           Account তৈরি করুন
         </Button>

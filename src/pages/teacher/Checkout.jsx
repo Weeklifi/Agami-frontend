@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { CreditCard, ShieldCheck, CheckCircle2 } from "lucide-react";
 import client from "../../api/client";
 import AppShell from "../../components/AppShell";
 import Card from "../../components/ui/Card";
@@ -98,12 +99,10 @@ export default function Checkout() {
     }
   };
 
-  // ✅ এখন আসল gateway — SSLCommerz-এ redirect
   const pay = async () => {
     setBusy(true);
     setError("");
     try {
-      // Profile তথ্য আগে সেভ করি
       await client.patch("/api/referrals/profile/", form).catch(() => {});
 
       const { data } = await client.post("/api/payments/subscribe/", {
@@ -112,7 +111,6 @@ export default function Checkout() {
       });
 
       localStorage.removeItem("referral_code");
-      // SSLCommerz-এর payment page-এ পাঠাই
       window.location.href = data.gateway_url;
     } catch (err) {
       setError(err.response?.data?.detail || "Payment শুরু করা যায়নি।");
@@ -155,8 +153,9 @@ export default function Checkout() {
                 setRefState(null);
               }}
               placeholder="যেমন ABCD1234"
-              className="flex-1 rounded-lg border border-line px-3.5 py-2 text-sm
-                uppercase tracking-wider outline-none focus:border-brand-500"
+              className="flex-1 rounded-xl border border-line px-3.5 py-2.5 text-sm
+                uppercase tracking-wider outline-none focus:border-brand-500
+                focus:ring-2 focus:ring-brand-100"
             />
             <Button
               variant="secondary"
@@ -168,8 +167,9 @@ export default function Checkout() {
             </Button>
           </div>
           {refState?.valid && (
-            <p className="text-xs text-ok">
-              ✓ {refState.referrer_name}-এর কোড — {refState.discount_percent}% ছাড়
+            <p className="flex items-center gap-1 text-xs text-ok">
+              <CheckCircle2 className="h-3.5 w-3.5" /> {refState.referrer_name}-এর কোড —{" "}
+              {refState.discount_percent}% ছাড়
             </p>
           )}
           {refState && !refState.valid && (
@@ -178,26 +178,26 @@ export default function Checkout() {
         </Card>
 
         <Card>
-          <h2 className="text-base font-bold mb-4">Order সারসংক্ষেপ</h2>
+          <h2 className="text-base font-bold mb-3">Order সারসংক্ষেপ</h2>
 
           <Row label="Plan" value={plan.name} />
           <Row label="মূল দাম" value={`৳${Math.round(price.base_price)}`} />
 
           {price.discount_percent > 0 && (
-            <div className="flex items-center justify-between py-2 border-b border-line text-ok">
+            <div className="flex items-center justify-between py-2.5 border-b border-dashed border-line text-ok">
               <span className="text-sm">
                 ছাড় ({price.discount_percent}%)
                 {reason?.type === "referrer" && " · referral bonus"}
               </span>
-              <span className="text-sm font-medium">
+              <span className="text-sm font-semibold">
                 −৳{Math.round(price.discount_amount)}
               </span>
             </div>
           )}
 
-          <div className="flex items-center justify-between py-3">
-            <span className="text-sm font-semibold">মোট</span>
-            <span className="text-xl font-bold">
+          <div className="mt-1 flex items-center justify-between border-t-2 border-line pt-3">
+            <span className="text-sm font-bold">মোট</span>
+            <span className="text-xl font-extrabold text-brand-600">
               ৳{Math.round(price.final_price)}
             </span>
           </div>
@@ -206,14 +206,16 @@ export default function Checkout() {
 
           <div className="mt-4 space-y-2">
             <Button loading={busy} onClick={pay}>
-              💳 ৳{Math.round(price.final_price)} — Pay করুন
+              <CreditCard className="h-4 w-4" /> ৳{Math.round(price.final_price)} — Pay করুন
             </Button>
             <Button variant="secondary" onClick={() => navigate("/teacher/plans")}>
               বাতিল
             </Button>
           </div>
 
-          <p className="mt-3 text-center text-[11px] text-ink-400">
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-center
+            text-[11px] text-ink-400">
+            <ShieldCheck className="h-3.5 w-3.5" />
             bKash · Nagad · Rocket · Card — SSLCommerz-এর নিরাপদ gateway
           </p>
         </Card>
@@ -225,12 +227,12 @@ export default function Checkout() {
 function Field({ label, value, onChange }) {
   return (
     <div>
-      <label className="text-xs text-ink-600 block mb-1">{label}</label>
+      <label className="text-xs font-medium text-ink-700 block mb-1">{label}</label>
       <input
         value={value}
         onChange={onChange}
-        className="w-full rounded-lg border border-line px-3.5 py-2 text-sm
-          outline-none focus:border-brand-500"
+        className="w-full rounded-xl border border-line px-3.5 py-2.5 text-sm
+          outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
       />
     </div>
   );
@@ -238,9 +240,9 @@ function Field({ label, value, onChange }) {
 
 function Row({ label, value }) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-line">
+    <div className="flex items-center justify-between py-2.5 border-b border-dashed border-line">
       <span className="text-sm text-ink-600">{label}</span>
-      <span className="text-sm font-medium">{value}</span>
+      <span className="text-sm font-semibold">{value}</span>
     </div>
   );
 }

@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Check, Flame, ShieldCheck } from "lucide-react";
 import client from "../../api/client";
 import AppShell from "../../components/AppShell";
 import Button from "../../components/ui/Button";
+
+const FEATURES = [
+  "সীমাহীন batch তৈরি",
+  "সীমাহীন শিক্ষার্থী",
+  "নোটিশ, পরীক্ষা ও ফলাফল",
+  "ক্লাস রুটিন ব্যবস্থাপনা",
+  "বেতন আদায়ের হিসাব",
+  "Email ও in-app notification",
+];
 
 export default function Plans() {
   const navigate = useNavigate();
@@ -21,21 +31,16 @@ export default function Plans() {
       ? status.subscription.plan?.id
       : null;
 
-  // Yearly-কে "জনপ্রিয়" হিসেবে চিহ্নিত করব
   const isPopular = (p) => p.interval === "YEARLY";
 
-  const selectPlan = (plan) => {
-    // Payment page-এ plan-এর তথ্য পাঠাই
-    navigate(`/teacher/checkout/${plan.id}`);
-  };
+  const selectPlan = (plan) => navigate(`/teacher/checkout/${plan.id}`);
 
   return (
     <AppShell title="Plans">
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold">আপনার জন্য সঠিক plan বেছে নিন</h1>
-          <p className="mt-2 text-sm text-ink-600">
+        <div className="text-center mb-6">
+          <h1 className="text-xl font-bold">সঠিক plan বেছে নিন</h1>
+          <p className="mt-1.5 text-sm text-ink-600">
             যেকোনো সময় upgrade বা বাতিল করতে পারবেন। কোনো লুকানো খরচ নেই।
           </p>
         </div>
@@ -43,29 +48,23 @@ export default function Plans() {
         {plans === null ? (
           <p className="text-center text-sm text-ink-400">লোড হচ্ছে…</p>
         ) : plans.length === 0 ? (
-          <p className="text-center text-sm text-ink-400">
-            কোনো plan পাওয়া যায়নি।
-          </p>
+          <p className="text-center text-sm text-ink-400">কোনো plan পাওয়া যায়নি।</p>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {plans.map((p) => {
               const popular = isPopular(p);
               const isCurrent = currentPlanId === p.id;
               return (
                 <div
                   key={p.id}
-                  className={`relative rounded-2xl border-2 p-6 flex flex-col
-                    ${
-                      popular
-                        ? "border-brand-600 shadow-lg"
-                        : "border-line"
-                    }`}
+                  className={`relative flex flex-col rounded-2xl border bg-surface p-6 shadow-soft
+                    ${popular ? "border-2 border-brand-600 shadow-pop" : "border-line"}`}
                 >
                   {popular && (
-                    <span className="absolute -top-3 left-1/2 -translate-x-1/2
-                      rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold
-                      text-white">
-                      🔥 সবচেয়ে জনপ্রিয়
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex
+                      items-center gap-1 rounded-full grad-brand px-3 py-1 text-xs
+                      font-semibold text-white shadow-brand">
+                      <Flame className="h-3.5 w-3.5" /> সবচেয়ে জনপ্রিয়
                     </span>
                   )}
 
@@ -75,7 +74,7 @@ export default function Plans() {
                   </p>
 
                   <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-4xl font-bold">
+                    <span className="text-4xl font-extrabold tracking-tight">
                       ৳{Math.round(p.price)}
                     </span>
                     <span className="text-sm text-ink-400">
@@ -84,23 +83,18 @@ export default function Plans() {
                   </div>
 
                   {p.interval === "YEARLY" && (
-                    <p className="mt-1 text-xs text-ok font-medium">
+                    <p className="mt-1 text-xs font-medium text-ok">
                       মাসিকের চেয়ে সাশ্রয়ী 💰
                     </p>
                   )}
 
-                  {/* Feature list */}
-                  <ul className="mt-5 space-y-2.5 flex-1">
-                    {[
-                      "সীমাহীন batch তৈরি",
-                      "সীমাহীন শিক্ষার্থী",
-                      "নোটিশ, পরীক্ষা ও ফলাফল",
-                      "ক্লাস রুটিন ব্যবস্থাপনা",
-                      "বেতন আদায়ের হিসাব",
-                      "Email ও in-app notification",
-                    ].map((f) => (
+                  <ul className="mt-5 flex-1 space-y-2.5">
+                    {FEATURES.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-sm">
-                        <span className="text-ok mt-0.5">✓</span>
+                        <span className="mt-0.5 grid h-4 w-4 place-items-center rounded-full
+                          bg-emerald-50 text-ok">
+                          <Check className="h-3 w-3" strokeWidth={3} />
+                        </span>
                         <span className="text-ink-600">{f}</span>
                       </li>
                     ))}
@@ -126,8 +120,9 @@ export default function Plans() {
           </div>
         )}
 
-        <p className="mt-8 text-center text-xs text-ink-400">
-          🔒 নিরাপদ payment · যেকোনো সময় বাতিলযোগ্য
+        <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-xs
+          text-ink-400">
+          <ShieldCheck className="h-4 w-4" /> নিরাপদ payment · যেকোনো সময় বাতিলযোগ্য
         </p>
       </div>
     </AppShell>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Mail, Lock } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { landingPath } from "../../lib/landing";
 import AuthLayout from "../../components/AuthLayout";
@@ -42,6 +43,7 @@ export default function Login() {
       <form onSubmit={submit} className="space-y-4">
         <Input
           label={t("email")}
+          icon={Mail}
           type="email"
           placeholder="you@example.com"
           value={form.email}
@@ -49,6 +51,7 @@ export default function Login() {
         />
         <Input
           label={t("password")}
+          icon={Lock}
           type="password"
           placeholder="••••••••"
           value={form.password}

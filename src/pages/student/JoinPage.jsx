@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { BookOpen, GraduationCap } from "lucide-react";
 import client, { tokenStore } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import AuthLayout from "../../components/AuthLayout";
@@ -89,10 +90,16 @@ export default function JoinPage() {
     );
 
   const batchInfo = (
-    <div className="mb-5 rounded-lg bg-brand-50 p-4 text-center">
+    <div className="mb-5 rounded-2xl border border-brand-100 bg-brand-50 p-4 text-center">
+      <div className="mx-auto mb-2 grid h-11 w-11 place-items-center rounded-xl
+        bg-white text-brand-600 shadow-soft">
+        <BookOpen className="h-5 w-5" />
+      </div>
       <p className="text-xs text-ink-600">আপনাকে আমন্ত্রণ জানানো হয়েছে</p>
-      <p className="mt-1 font-semibold">{invite.batch.name}</p>
-      <p className="text-xs text-ink-600">🎓 {invite.batch.teacher_name}</p>
+      <p className="mt-1 font-bold">{invite.batch.name}</p>
+      <p className="flex items-center justify-center gap-1 text-xs text-ink-600">
+        <GraduationCap className="h-3.5 w-3.5" /> {invite.batch.teacher_name}
+      </p>
     </div>
   );
 

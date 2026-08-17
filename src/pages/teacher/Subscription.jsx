@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Clock, Lock, Gift, ChevronRight, AlertTriangle } from "lucide-react";
 import client from "../../api/client";
 import AppShell from "../../components/AppShell";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
-import Badge from "../../components/ui/Badge";
+import Hero from "../../components/ui/Hero";
 
 const daysLeft = (iso) =>
   Math.max(0, Math.ceil((new Date(iso) - new Date()) / 86400000));
@@ -42,81 +43,75 @@ export default function Subscription() {
     );
 
   const sub = status.subscription;
+  const left = status.active ? daysLeft(sub.end_date) : 0;
+  // ট্রায়াল ৩০ দিন ধরে অগ্রগতি বার — আনুমানিক
+  const pct = status.active ? Math.max(6, Math.min(100, (left / 30) * 100)) : 0;
 
   return (
     <AppShell title="Subscription">
-      <div className="space-y-5 max-w-2xl">
-        <Card>
-          {status.active ? (
-            <>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-ink-400 mb-0.5">বর্তমান plan</p>
-                  <h2 className="text-base font-bold">
-                    {sub.is_trial ? "🎁 Free Trial" : sub.plan?.name}
-                  </h2>
-                </div>
-                <Badge tone={daysLeft(sub.end_date) <= 7 ? "warn" : "ok"}>
-                  {daysLeft(sub.end_date)} দিন বাকি
-                </Badge>
+      <div className="space-y-4 max-w-2xl">
+        {status.active ? (
+          <>
+            <Hero
+              label="বর্তমান Plan"
+              value={sub.is_trial ? "Free Trial" : sub.plan?.name || "Plan"}
+              tone={left <= 7 ? "violet" : "brand"}
+              meta={
+                <>
+                  <Clock className="h-4 w-4" /> মেয়াদ শেষ:{" "}
+                  {new Date(sub.end_date).toLocaleDateString("bn-BD", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}{" "}
+                  · {left} দিন বাকি
+                </>
+              }
+            >
+              <div className="mt-3 h-1.5 rounded-full bg-white/25">
+                <div
+                  className="h-full rounded-full bg-white"
+                  style={{ width: `${pct}%` }}
+                />
               </div>
-              <p className="mt-2 text-xs text-ink-600">
-                মেয়াদ শেষ:{" "}
-                {new Date(sub.end_date).toLocaleDateString("bn-BD", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
-              {sub.is_trial && (
-                <div className="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-warn">
-                  ⏳ Trial শেষ হওয়ার আগে একটি plan কিনুন — নিরবচ্ছিন্ন সেবা পেতে।
-                </div>
-              )}
-              <div className="mt-4">
-                <Button
-                  className="!w-auto px-6"
-                  onClick={() => navigate("/teacher/plans")}
-                >
-                  {sub.is_trial ? "🚀 Plan কিনুন" : "Plan পরিবর্তন / নবায়ন"}
-                </Button>
+            </Hero>
+
+            {sub.is_trial && (
+              <div className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5
+                text-xs text-amber-700">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>Trial শেষ হওয়ার আগে একটি plan কিনুন — নিরবচ্ছিন্ন সেবা পেতে।</span>
               </div>
-            </>
-          ) : (
-            <div className="text-center py-4">
-              <div className="text-3xl mb-2">🔒</div>
-              <p className="text-base font-semibold mb-1">
-                কোনো active subscription নেই
-              </p>
-              <p className="text-sm text-ink-600 mb-4">
-                Batch তৈরি ও পরিচালনা করতে subscription প্রয়োজন।
-              </p>
-              <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                <Button
-                  className="!w-auto px-6"
-                  onClick={() => navigate("/teacher/plans")}
-                >
-                  💳 Purchase now
-                </Button>
-                {status.trial_available && (
-                  <Button
-                    variant="secondary"
-                    className="!w-auto px-6"
-                    onClick={startTrial}
-                    loading={busy}
-                  >
-                    🎁 ৩০ দিনের Free Trial
-                  </Button>
-                )}
-              </div>
+            )}
+
+            <Button onClick={() => navigate("/teacher/plans")}>
+              {sub.is_trial ? "Plan কিনুন" : "Plan পরিবর্তন / নবায়ন"}
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          <Card className="text-center py-8">
+            <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl
+              bg-slate-100 text-slate-500">
+              <Lock className="h-7 w-7" />
             </div>
-          )}
-        </Card>
+            <p className="text-base font-bold mb-1">কোনো active subscription নেই</p>
+            <p className="text-sm text-ink-600 mb-5 px-4">
+              Batch তৈরি ও পরিচালনা করতে subscription প্রয়োজন।
+            </p>
+            <div className="flex flex-col gap-2 px-4">
+              <Button onClick={() => navigate("/teacher/plans")}>Purchase now</Button>
+              {status.trial_available && (
+                <Button variant="secondary" onClick={startTrial} loading={busy}>
+                  <Gift className="h-4 w-4" /> ৩০ দিনের Free Trial
+                </Button>
+              )}
+            </div>
+          </Card>
+        )}
 
         {error && (
-          <div className="rounded-lg bg-red-50 p-3 text-sm text-err">
-            {error}
-          </div>
+          <div className="rounded-xl bg-red-50 p-3 text-sm text-err">{error}</div>
         )}
       </div>
     </AppShell>

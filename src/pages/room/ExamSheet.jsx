@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft, UserX } from "lucide-react";
 import client from "../../api/client";
+import Avatar from "../../components/ui/Avatar";
 
 export default function ExamSheet({ exam, onBack }) {
   const [data, setData] = useState(null);
@@ -38,8 +40,11 @@ export default function ExamSheet({ exam, onBack }) {
 
   return (
     <div className="space-y-4">
-      <button onClick={onBack} className="text-xs text-brand-600 hover:underline">
-        ‹ পরীক্ষার তালিকায় ফিরুন
+      <button
+        onClick={onBack}
+        className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline"
+      >
+        <ChevronLeft className="h-4 w-4" /> পরীক্ষার তালিকায় ফিরুন
       </button>
 
       <div>
@@ -47,48 +52,53 @@ export default function ExamSheet({ exam, onBack }) {
         <p className="text-xs text-ink-400">পূর্ণমান {exam.total_marks}</p>
       </div>
 
-      <ul className="divide-y divide-line">
+      <ul className="rounded-2xl border border-line bg-surface shadow-soft
+        divide-y divide-line overflow-hidden">
         {data.results.map((r) => (
-          <li key={r.id} className="flex items-center gap-2 py-2.5">
-            <p className="flex-1 min-w-0 text-sm font-medium truncate">
+          <li key={r.id} className="flex items-center gap-2.5 px-3 py-2.5">
+            <Avatar name={r.student_name} size="sm" />
+            <p className="flex-1 min-w-0 text-sm font-semibold truncate">
               {r.student_name}
             </p>
 
             {r.is_absent ? (
-              <span className="text-xs text-err font-medium px-2">অনুপস্থিত</span>
-            ) : (
-              <input
-                type="number"
-                value={drafts[r.id] ?? ""}
-                onChange={(e) => setDrafts({ ...drafts, [r.id]: e.target.value })}
-                onBlur={() => {
-                  const orig = r.marks !== null ? String(r.marks) : "";
-                  if (drafts[r.id] !== orig) save(r.id);
-                }}
-                placeholder="—"
-                className="w-16 rounded-lg border border-line px-2 py-1.5 text-sm
-                  text-center outline-none focus:border-brand-500"
-              />
-            )}
-
-            {r.percentage !== null && !r.is_absent && (
-              <span className="text-xs text-ink-400 w-12 text-right">
-                {r.percentage}%
+              <span className="rounded-lg bg-red-50 px-2.5 py-1 text-xs font-semibold text-err">
+                অনুপস্থিত
               </span>
+            ) : (
+              <>
+                {r.percentage !== null && (
+                  <span className="text-xs text-ink-400 w-10 text-right">
+                    {r.percentage}%
+                  </span>
+                )}
+                <input
+                  type="number"
+                  value={drafts[r.id] ?? ""}
+                  onChange={(e) => setDrafts({ ...drafts, [r.id]: e.target.value })}
+                  onBlur={() => {
+                    const orig = r.marks !== null ? String(r.marks) : "";
+                    if (drafts[r.id] !== orig) save(r.id);
+                  }}
+                  placeholder="—"
+                  className="w-14 rounded-lg border border-line px-2 py-1.5 text-sm
+                    font-semibold text-center outline-none focus:border-brand-500
+                    focus:ring-2 focus:ring-brand-100"
+                />
+              </>
             )}
 
             <button
               onClick={() => save(r.id, !r.is_absent)}
               disabled={busy === r.id}
-              className={`text-xs px-2 py-1 rounded border shrink-0
-                ${
-                  r.is_absent
-                    ? "border-err text-err"
-                    : "border-line text-ink-400 hover:border-err hover:text-err"
+              className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition-colors
+                ${r.is_absent
+                  ? "border-err text-err bg-red-50"
+                  : "border-line text-ink-400 hover:border-err hover:text-err"
                 }`}
               title="অনুপস্থিত হিসেবে চিহ্নিত করুন"
             >
-              ✗
+              <UserX className="h-4 w-4" />
             </button>
           </li>
         ))}

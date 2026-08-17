@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MessageSquare, CreditCard, Send, AlertTriangle, CheckCircle2 } from "lucide-react";
 import client from "../../api/client";
 import AppShell from "../../components/AppShell";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
+import Hero from "../../components/ui/Hero";
 
 const SMS_LENGTH = 160;
 
@@ -18,7 +20,6 @@ export default function BulkSms() {
   const [error, setError] = useState("");
   const textareaRef = useRef(null);
 
-  // Batches load
   useEffect(() => {
     client.get("/api/batches/").then((res) => {
       const list = res.data.results || res.data;
@@ -27,27 +28,23 @@ export default function BulkSms() {
     });
   }, []);
 
-  // Batch বদলালে recipient info + balance
   useEffect(() => {
     if (!batchId) return;
     client.get(`/api/batches/${batchId}/sms-info/`).then((res) => setInfo(res.data));
   }, [batchId]);
 
-  // SMS part হিসাব
   const smsParts = Math.max(1, Math.ceil(message.length / SMS_LENGTH));
   const recipientCount = info?.with_phone || 0;
   const totalSmsNeeded = recipientCount * smsParts;
   const balance = info?.balance || 0;
   const enough = balance >= totalSmsNeeded && recipientCount > 0;
 
-  // [Student_Name] tag cursor-এ বসানো
   const insertTag = () => {
     const el = textareaRef.current;
     const start = el.selectionStart;
     const end = el.selectionEnd;
     const next = message.slice(0, start) + "[Student_Name]" + message.slice(end);
     setMessage(next);
-    // cursor tag-এর পরে নিয়ে যাও
     setTimeout(() => {
       el.focus();
       const pos = start + "[Student_Name]".length;
@@ -66,7 +63,6 @@ export default function BulkSms() {
       });
       setResult(data);
       setMessage("");
-      // balance refresh
       client.get(`/api/batches/${batchId}/sms-info/`).then((res) => setInfo(res.data));
     } catch (err) {
       setError(err.response?.data?.error || err.response?.data?.detail || "পাঠানো যায়নি।");
@@ -78,20 +74,22 @@ export default function BulkSms() {
   return (
     <AppShell title="Bulk SMS">
       <div className="max-w-2xl space-y-4">
-        {/* Balance card */}
-        <Card className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-ink-400">SMS ব্যালেন্স</p>
-            <p className="text-2xl font-bold">{balance}</p>
-          </div>
-          <Button
-            variant="secondary"
-            className="!w-auto"
+        {/* Balance */}
+        <Hero
+          tone="violet"
+          label="SMS ব্যালেন্স"
+          value={balance}
+          icon={MessageSquare}
+          meta={<>~{balance}টি SMS পাঠানো যাবে</>}
+        >
+          <button
             onClick={() => navigate("/teacher/sms/recharge")}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-white/20
+              px-3 py-1.5 text-xs font-semibold"
           >
-            💳 Recharge
-          </Button>
-        </Card>
+            <CreditCard className="h-3.5 w-3.5" /> Recharge
+          </button>
+        </Hero>
 
         <Card className="space-y-4">
           {/* Batch dropdown */}
@@ -100,8 +98,8 @@ export default function BulkSms() {
             <select
               value={batchId}
               onChange={(e) => setBatchId(e.target.value)}
-              className="w-full rounded-lg border border-line px-3.5 py-2.5 text-sm
-                outline-none focus:border-brand-500"
+              className="w-full rounded-xl border border-line px-3.5 py-3 text-sm
+                outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
             >
               {batches.map((b) => (
                 <option key={b.id} value={b.id}>{b.name}</option>
@@ -116,7 +114,7 @@ export default function BulkSms() {
               <button
                 type="button"
                 onClick={insertTag}
-                className="text-xs text-brand-600 hover:underline"
+                className="text-xs font-medium text-brand-600 hover:underline"
               >
                 + [Student_Name] যোগ করুন
               </button>
@@ -127,8 +125,8 @@ export default function BulkSms() {
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
               placeholder="যেমন: প্রিয় [Student_Name], আগামীকাল ক্লাস বন্ধ থাকবে।"
-              className="w-full rounded-lg border border-line px-3.5 py-2.5 text-sm
-                outline-none focus:border-brand-500 resize-none"
+              className="w-full rounded-xl border border-line px-3.5 py-3 text-sm
+                outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 resize-none"
             />
             <div className="flex items-center justify-between mt-1 text-xs text-ink-400">
               <span>{message.length} অক্ষর</span>
@@ -138,7 +136,7 @@ export default function BulkSms() {
 
           {/* হিসাব */}
           {info && (
-            <div className="rounded-lg bg-page p-3 text-xs space-y-1">
+            <div className="rounded-xl bg-page p-3 text-xs space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-ink-600">Batch-এ শিক্ষার্থী</span>
                 <span className="font-medium">{info.total_students} জন</span>
@@ -151,7 +149,7 @@ export default function BulkSms() {
                 <span className="text-ink-600">মোট SMS দরকার</span>
                 <span className="font-medium">{totalSmsNeeded}টি</span>
               </div>
-              <div className="flex justify-between border-t border-line pt-1 mt-1">
+              <div className="flex justify-between border-t border-line pt-1.5 mt-1.5">
                 <span className="text-ink-600">আপনার ব্যালেন্স</span>
                 <span className={`font-bold ${enough ? "text-ok" : "text-err"}`}>
                   {balance}টি
@@ -161,24 +159,27 @@ export default function BulkSms() {
           )}
 
           {recipientCount === 0 && info && (
-            <p className="text-xs text-warn">
-              ⚠️ এই batch-এ কারো ফোন নম্বর যোগ করা নেই। Student list-এ গিয়ে যোগ করুন।
+            <p className="flex items-start gap-1.5 text-xs text-warn">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              এই batch-এ কারো ফোন নম্বর যোগ করা নেই। Student list-এ গিয়ে যোগ করুন।
             </p>
           )}
 
           {error && <p className="text-sm text-err">{error}</p>}
 
           {result && (
-            <div className="rounded-lg bg-emerald-50 p-3 text-sm text-ok">
-              ✓ {result.sent}/{result.total} জনকে পাঠানো হয়েছে।
-              {result.failed > 0 && ` (${result.failed}টি ব্যর্থ, credit ফেরত দেওয়া হয়েছে)`}
+            <div className="flex items-start gap-2 rounded-xl bg-emerald-50 p-3 text-sm text-ok">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                {result.sent}/{result.total} জনকে পাঠানো হয়েছে।
+                {result.failed > 0 && ` (${result.failed}টি ব্যর্থ, credit ফেরত দেওয়া হয়েছে)`}
+              </span>
             </div>
           )}
 
-          {/* Send / Recharge */}
           {enough ? (
             <Button loading={busy} disabled={!message.trim()} onClick={send}>
-              📤 {totalSmsNeeded}টি SMS পাঠান
+              <Send className="h-4 w-4" /> {totalSmsNeeded}টি SMS পাঠান
             </Button>
           ) : (
             <div className="space-y-2">
@@ -188,7 +189,7 @@ export default function BulkSms() {
                 </p>
               )}
               <Button onClick={() => navigate("/teacher/sms/recharge")}>
-                💳 SMS Recharge করুন
+                <CreditCard className="h-4 w-4" /> SMS Recharge করুন
               </Button>
             </div>
           )}

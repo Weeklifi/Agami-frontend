@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Bell, Check, X } from "lucide-react";
 import client from "../api/client";
 
 const timeAgo = (iso) => {
@@ -60,16 +61,16 @@ export default function NotificationPanel({ open, onClose, onChanged }) {
           <div className="flex items-center gap-2">
             <button
               onClick={markAllRead}
-              className="text-xs text-brand-600 hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline"
             >
-              সব পড়া হয়েছে
+              <Check className="h-3.5 w-3.5" /> সব পড়া হয়েছে
             </button>
             <button
               onClick={onClose}
               className="rounded-lg p-1.5 text-ink-400 hover:bg-page"
               aria-label="Close"
             >
-              ✕
+              <X className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -80,7 +81,10 @@ export default function NotificationPanel({ open, onClose, onChanged }) {
             <p className="text-sm text-ink-400 text-center py-8">লোড হচ্ছে…</p>
           ) : items.length === 0 ? (
             <div className="text-center py-16 px-4">
-              <div className="text-4xl mb-2">🔔</div>
+              <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl
+                bg-slate-100 text-ink-400">
+                <Bell className="h-7 w-7" />
+              </div>
               <p className="text-sm text-ink-400">কোনো notification নেই</p>
             </div>
           ) : (

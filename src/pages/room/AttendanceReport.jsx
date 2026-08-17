@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import client from "../../api/client";
+import Avatar from "../../components/ui/Avatar";
 
 const monthStr = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -31,13 +33,18 @@ export default function AttendanceReport({ batchId }) {
 
   return (
     <div className="space-y-4">
-      {/* মাস নির্বাচন */}
       <div className="flex items-center justify-between">
-        <button onClick={() => shiftMonth(-1)} className="px-2 py-1 hover:bg-page rounded">‹</button>
-        <span className="text-sm font-medium">
+        <button onClick={() => shiftMonth(-1)}
+          className="grid h-9 w-9 place-items-center rounded-lg hover:bg-page">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <span className="text-sm font-semibold">
           {month.toLocaleString("bn-BD", { month: "long", year: "numeric" })}
         </span>
-        <button onClick={() => shiftMonth(1)} className="px-2 py-1 hover:bg-page rounded">›</button>
+        <button onClick={() => shiftMonth(1)}
+          className="grid h-9 w-9 place-items-center rounded-lg hover:bg-page">
+          <ChevronRight className="h-5 w-5" />
+        </button>
       </div>
 
       {data === null ? (
@@ -52,26 +59,22 @@ export default function AttendanceReport({ batchId }) {
             এই মাসে মোট <strong>{data.total_classes}</strong>টি ক্লাস
           </p>
 
-          <ul className="divide-y divide-line">
+          <ul className="rounded-2xl border border-line bg-surface shadow-soft
+            divide-y divide-line overflow-hidden">
             {data.students.map((st) => (
-              <li
-                key={st.student_name}
-                className="flex items-center justify-between gap-3 py-2.5"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {st.student_name}
-                  </p>
+              <li key={st.student_name} className="flex items-center gap-2.5 px-3 py-2.5">
+                <Avatar name={st.student_name} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold truncate">{st.student_name}</p>
                   <p className="text-xs text-ink-400">
-                    ✓ {st.present} · ✗ {st.absent}
+                    <span className="text-ok">✓ {st.present}</span> ·{" "}
+                    <span className="text-err">✗ {st.absent}</span>
                     {st.unmarked > 0 && ` · বাকি ${st.unmarked}`}
                   </p>
                 </div>
-                <div className="shrink-0 text-right">
-                  <p className={`text-lg font-bold ${tone(st.percentage)}`}>
-                    {st.percentage}%
-                  </p>
-                </div>
+                <p className={`shrink-0 text-lg font-extrabold ${tone(st.percentage)}`}>
+                  {st.percentage}%
+                </p>
               </li>
             ))}
           </ul>

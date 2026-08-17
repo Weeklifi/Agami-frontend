@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Gift, Copy, Check, Target, PartyPopper, MessageCircle } from "lucide-react";
 import client from "../../api/client";
 import Card from "../../components/ui/Card";
 
@@ -15,7 +16,7 @@ export default function ReferEarn() {
   if (!stats) return <p className="text-sm text-ink-400">লোড হচ্ছে…</p>;
 
   const link = `${APP_URL}/register?ref=${stats.referral_code}`;
-  const target = stats.milestone_target;      // 5
+  const target = stats.milestone_target;
   const count = stats.successful_referrals_count;
   const pct = Math.min(100, (count / target) * 100);
   const remaining = Math.max(0, target - count);
@@ -34,39 +35,39 @@ export default function ReferEarn() {
 
   return (
     <div className="space-y-4">
-      {/* বর্তমান ছাড় */}
-      <Card className="text-center bg-brand-50 border-brand-200">
-        <p className="text-xs text-ink-600 mb-1">আপনার বর্তমান ছাড়</p>
-        <p className="text-4xl font-bold text-brand-700">
-          {stats.current_discount_percentage}%
-        </p>
-        <p className="text-xs text-ink-600 mt-1">
-          পরের subscription-এ প্রযোজ্য হবে
-        </p>
-      </Card>
+      {/* বর্তমান ছাড় — gradient hero */}
+      <div className="grad-brand shadow-brand relative overflow-hidden rounded-2xl p-5
+        text-center text-white">
+        <p className="text-xs opacity-90">আপনার বর্তমান ছাড়</p>
+        <p className="mt-1 text-4xl font-extrabold">{stats.current_discount_percentage}%</p>
+        <p className="mt-1 text-xs opacity-90">পরের subscription-এ প্রযোজ্য হবে</p>
+        <Gift className="absolute right-4 bottom-3 h-14 w-14 opacity-20" strokeWidth={1.5} />
+        <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10" />
+      </div>
 
-      {/* Gamified progress */}
+      {/* Milestone progress */}
       <Card>
         <div className="flex items-center justify-between mb-2">
           <p className="text-sm font-semibold">Milestone অগ্রগতি</p>
-          <p className="text-xs text-ink-400">
-            {count} / {target}
-          </p>
+          <p className="text-xs text-ink-400">{count} / {target}</p>
         </div>
-        <div className="h-3 rounded-full bg-page overflow-hidden">
+        <div className="h-2.5 rounded-full bg-page overflow-hidden">
           <div
-            className="h-full bg-brand-600 transition-all duration-500"
+            className="h-full grad-brand transition-all duration-500"
             style={{ width: `${pct}%` }}
           />
         </div>
         {remaining > 0 ? (
-          <p className="mt-2 text-xs text-ink-600">
-            🎯 আর <strong>{remaining} জন</strong> শিক্ষককে আনলে{" "}
-            <strong className="text-brand-600">{stats.milestone_discount}% ছাড়</strong> unlock হবে!
+          <p className="mt-2 flex items-start gap-1.5 text-xs text-ink-600">
+            <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-600" />
+            <span>
+              আর <strong>{remaining} জন</strong> শিক্ষককে আনলে{" "}
+              <strong className="text-brand-600">{stats.milestone_discount}% ছাড়</strong> unlock হবে!
+            </span>
           </p>
         ) : (
-          <p className="mt-2 text-xs text-ok font-medium">
-            🎉 {stats.milestone_discount}% ছাড় unlock হয়েছে!
+          <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-ok">
+            <PartyPopper className="h-3.5 w-3.5" /> {stats.milestone_discount}% ছাড় unlock হয়েছে!
           </p>
         )}
       </Card>
@@ -74,31 +75,31 @@ export default function ReferEarn() {
       {/* Referral code + share */}
       <Card className="space-y-3">
         <div>
-          <p className="text-xs text-ink-600 mb-1">আপনার Referral Code</p>
+          <p className="text-xs text-ink-600 mb-1.5">আপনার Referral Code</p>
           <div className="flex items-center gap-2">
-            <code className="flex-1 rounded-lg bg-page px-4 py-2.5 text-lg
-              font-bold tracking-wider text-center">
+            <code className="flex-1 rounded-xl bg-page px-4 py-3 text-lg font-bold
+              tracking-wider text-center text-brand-700">
               {stats.referral_code}
             </code>
             <button
               onClick={copyLink}
-              className="rounded-lg border border-line px-4 py-2.5 text-sm
-                font-medium hover:bg-page whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-line
+                px-4 py-3 text-sm font-medium hover:bg-page whitespace-nowrap"
             >
-              {copied ? "✓ কপি" : "📋 লিংক"}
+              {copied ? <Check className="h-4 w-4 text-ok" /> : <Copy className="h-4 w-4" />}
+              {copied ? "কপি" : "লিংক"}
             </button>
           </div>
         </div>
 
-        {/* এখানে ভুলটি ঠিক করা হয়েছে (<a যোগ করা হয়েছে) */}
         <a
           href={`https://wa.me/?text=${waMessage}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full text-center rounded-lg bg-green-600 text-white
-            py-2.5 text-sm font-medium hover:bg-green-700 transition-colors"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600
+            py-3 text-sm font-semibold text-white hover:bg-green-700 transition-colors"
         >
-          💬 WhatsApp-এ invite করুন
+          <MessageCircle className="h-4 w-4" /> WhatsApp-এ invite করুন
         </a>
       </Card>
 
@@ -114,7 +115,7 @@ export default function ReferEarn() {
         ) : (
           <ul className="divide-y divide-line">
             {stats.referrals.map((r, i) => (
-              <li key={i} className="flex items-center justify-between py-2">
+              <li key={i} className="flex items-center justify-between py-2.5">
                 <span className="text-sm">{r.invitee_name}</span>
                 <span className={`text-xs font-medium ${
                   r.status === "CONVERTED" ? "text-ok" : "text-warn"
