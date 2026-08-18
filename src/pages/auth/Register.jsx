@@ -1,10 +1,25 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, ShieldCheck } from "lucide-react";
+import { Mail, Lock, ShieldCheck, BookOpen, GraduationCap, Check } from "lucide-react";
 import client from "../../api/client";
 import AuthLayout from "../../components/AuthLayout";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
+
+const ROLES = [
+  {
+    value: "TEACHER",
+    icon: BookOpen,
+    tone: "bg-brand-50 text-brand-600",
+    title: "আমি শিক্ষক",
+  },
+  {
+    value: "STUDENT",
+    icon: GraduationCap,
+    tone: "bg-violet-50 text-violet-600",
+    title: "আমি শিক্ষার্থী",
+  },
+];
 
 export default function Register() {
   const navigate = useNavigate();
@@ -13,6 +28,7 @@ export default function Register() {
     last_name: "",
     email: "",
     password: "",
+    role: "",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -21,6 +37,10 @@ export default function Register() {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (!form.role) {
+      setErrors({ role: ["আপনি শিক্ষক নাকি শিক্ষার্থী তা বেছে নিন।"] });
+      return;
+    }
     setLoading(true);
     setErrors({});
     try {
@@ -39,6 +59,45 @@ export default function Register() {
       subtitle="কোচিং পরিচালনা হোক আরও সহজ"
     >
       <form onSubmit={submit} className="space-y-4">
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-ink-700">
+            আপনি কী হিসেবে যোগ দিচ্ছেন?
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            {ROLES.map((r) => {
+              const Icon = r.icon;
+              const active = form.role === r.value;
+              return (
+                <button
+                  key={r.value}
+                  type="button"
+                  onClick={() => setForm({ ...form, role: r.value })}
+                  className={`relative flex items-center gap-2.5 rounded-xl border p-3
+                    text-left transition-all
+                    ${active
+                      ? "border-brand-600 bg-brand-50/60 ring-2 ring-brand-100"
+                      : "border-line bg-surface hover:border-brand-300"
+                    }`}
+                >
+                  <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${r.tone}`}>
+                    <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
+                  </div>
+                  <span className="text-sm font-semibold">{r.title}</span>
+                  {active && (
+                    <span className="absolute right-2.5 top-2.5 grid h-5 w-5
+                      place-items-center rounded-full bg-brand-600 text-white">
+                      <Check className="h-3 w-3" strokeWidth={3} />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {errors.role && (
+            <p className="mt-1.5 text-xs text-err">{errors.role[0]}</p>
+          )}
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <Input
             label="নাম"
