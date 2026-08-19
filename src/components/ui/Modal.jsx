@@ -45,8 +45,10 @@ export default function Modal({ open, onClose, title, wide = false, children }) 
         </div>
 
         {/* এই অংশটাই scroll হবে — modal নিজে না */}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4
-          safe-bottom">
+        <div
+          className="flex-1 overflow-y-auto overscroll-contain px-5 pt-4"
+          style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+        >
           {children}
         </div>
       </div>

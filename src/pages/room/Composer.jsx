@@ -91,21 +91,21 @@ export default function Composer({ batchId, onPosted }) {
   };
 
   return (
-    <div className="sticky bottom-14 md:bottom-0 -mx-3 md:-mx-6 border-t
-      border-line bg-surface/95 backdrop-blur px-3 py-3 md:px-6 safe-bottom">
+    <div className="sticky bottom-14 md:bottom-0 pt-2 pb-3 md:pb-4">
       <div className="max-w-2xl mx-auto">
         {!open ? (
           <button
             onClick={() => setOpen(true)}
             className="w-full flex items-center gap-2.5 rounded-full border
-              border-line bg-page px-4 py-3 text-sm text-ink-400
-              hover:bg-surface hover:border-brand-300 transition-colors"
+              border-line bg-surface shadow-soft px-4 py-3 text-sm text-ink-400
+              hover:border-brand-300 transition-colors"
           >
             <Pencil className="h-4 w-4" />
             {t("newPost")}
           </button>
         ) : (
-          <div className="space-y-2.5">
+          <div className="space-y-2.5 rounded-2xl border border-line bg-surface
+            shadow-soft p-3.5">
             {/* Type chips */}
             <div className="flex items-center gap-1.5 flex-wrap">
               {Object.entries(POST_TYPES).map(([value, cfg]) => (
