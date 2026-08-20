@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Landing from "./pages/Landing";
 import Register from "./pages/auth/Register";
 import CheckEmail from "./pages/auth/CheckEmail";
 import Activate from "./pages/auth/Activate";
@@ -24,7 +25,7 @@ import PaymentResult from "./pages/payment/PaymentResult";
 function Home() {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Landing />;
   if (!user.role) return <Navigate to="/select-role" replace />;
   return (
     <Navigate to={user.role === "TEACHER" ? "/teacher" : "/student"} replace />
