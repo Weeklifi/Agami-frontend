@@ -16,6 +16,11 @@ import Payments from "./pages/student/Payments";
 import MyBatches from "./pages/student/MyBatches";
 import JoinPage from "./pages/student/JoinPage";
 import RoomPage from "./pages/room/RoomPage";
+import StudentListPage from "./pages/teacher/StudentListPage";
+import AttendancePage from "./pages/room/AttendancePage";
+import ResultsPage from "./pages/room/ResultsPage";
+import RoutinePage from "./pages/room/RoutinePage";
+import FeePage from "./pages/room/FeePage";
 import Plans from "./pages/teacher/Plans";
 import Checkout from "./pages/teacher/Checkout";
 import Profile from "./pages/teacher/Profile";
@@ -86,10 +91,82 @@ export default function App() {
             }
           />
           <Route
+            path="/teacher/batches/:id/students"
+            element={
+              <ProtectedRoute role="TEACHER">
+                <StudentListPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher/batches/:id/attendance"
+            element={
+              <ProtectedRoute role="TEACHER">
+                <AttendancePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher/batches/:id/results"
+            element={
+              <ProtectedRoute role="TEACHER">
+                <ResultsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher/batches/:id/routine"
+            element={
+              <ProtectedRoute role="TEACHER">
+                <RoutinePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher/batches/:id/fee"
+            element={
+              <ProtectedRoute role="TEACHER">
+                <FeePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/teacher/batches/:id"
             element={
               <ProtectedRoute role="TEACHER">
                 <RoomPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/batches/:id/attendance"
+            element={
+              <ProtectedRoute role="STUDENT">
+                <AttendancePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/batches/:id/results"
+            element={
+              <ProtectedRoute role="STUDENT">
+                <ResultsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/batches/:id/routine"
+            element={
+              <ProtectedRoute role="STUDENT">
+                <RoutinePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/batches/:id/fee"
+            element={
+              <ProtectedRoute role="STUDENT">
+                <FeePage />
               </ProtectedRoute>
             }
           />

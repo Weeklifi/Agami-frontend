@@ -18,7 +18,7 @@ const todayPy = (new Date().getDay() + 6) % 7;
 
 const fmt = (t) => t.slice(0, 5); // "18:00:00" → "18:00"
 
-export default function RoutineSheet({ open, onClose, batchId, isTeacher }) {
+export function RoutineContent({ batchId, isTeacher }) {
   const [items, setItems] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [adding, setAdding] = useState(false);
@@ -31,8 +31,8 @@ export default function RoutineSheet({ open, onClose, batchId, isTeacher }) {
       .then((res) => setItems(res.data.results));
 
   useEffect(() => {
-    if (open && items === null) load();
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+    load();
+  }, [batchId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
 
@@ -80,7 +80,7 @@ export default function RoutineSheet({ open, onClose, batchId, isTeacher }) {
     );
 
   return (
-    <Modal open={open} onClose={onClose} title={t("Class Routine")} wide>
+    <>
       {items === null ? (
         <p className="text-sm text-ink-400">{t("loading")}</p>
       ) : (
@@ -243,6 +243,15 @@ export default function RoutineSheet({ open, onClose, batchId, isTeacher }) {
             ))}
         </div>
       )}
+    </>
+  );
+}
+
+export default function RoutineSheet({ open, onClose, batchId, isTeacher }) {
+  const { t } = useTranslation();
+  return (
+    <Modal open={open} onClose={onClose} title={t("Class Routine")} wide>
+      <RoutineContent batchId={batchId} isTeacher={isTeacher} />
     </Modal>
   );
 }

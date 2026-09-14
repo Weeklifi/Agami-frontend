@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import client from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
@@ -9,16 +9,18 @@ import Card from "../../components/ui/Card";
 import BatchBanner from "../../components/BatchBanner";
 import PhonePromptModal from "../../components/PhonePromptModal";
 import BatchSidebar from "./BatchSidebar";
+import BatchSidebarSkeleton from "./BatchSidebarSkeleton";
 import BatchModals from "./BatchModals";
 import Composer from "./Composer";
 
 export default function RoomPage() {
   const { id } = useParams();
+  const location = useLocation();
   const { user } = useAuth();
   const { t } = useTranslation();
   const isTeacher = user?.role === "TEACHER";
 
-  const [batch, setBatch] = useState(null);
+  const [batch, setBatch] = useState(location.state?.batch ?? null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -86,7 +88,7 @@ export default function RoomPage() {
     <AppShell
       title={batch ? batch.name : t("room")}
       sidebar={
-        batch && (
+        batch ? (
           <BatchSidebar
             batch={batch}
             isTeacher={isTeacher}
@@ -95,6 +97,8 @@ export default function RoomPage() {
             search={search}
             onSearch={setSearch}
           />
+        ) : (
+          <BatchSidebarSkeleton />
         )
       }
     >
@@ -161,6 +165,7 @@ export default function RoomPage() {
           isTeacher={isTeacher}
           tool={tool}
           onClose={() => setTool(null)}
+          onOpen={setTool}
         />
       )}
 

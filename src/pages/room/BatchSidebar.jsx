@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   ChevronLeft, Search, Users, ClipboardCheck, BarChart3, Calendar,
@@ -41,6 +41,7 @@ export default function BatchSidebar({
   onSearch,
 }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-4">
@@ -62,20 +63,23 @@ export default function BatchSidebar({
         )}
       </div>
 
-      <div className="px-3">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2
-            h-4 w-4 text-ink-400" />
-          <input
-            value={search}
-            onChange={(e) => onSearch(e.target.value)}
-            placeholder={t("searchPosts") || "খুঁজুন…"}
-            className="w-full rounded-xl border border-line bg-page py-2.5 pl-9 pr-3
-              text-sm outline-none focus:border-brand-500 focus:bg-surface
-              placeholder:text-ink-400"
-          />
+      {/* Feed search — শুধু RoomPage থেকে onSearch এলে দেখাবে */}
+      {onSearch && (
+        <div className="px-3">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2
+              h-4 w-4 text-ink-400" />
+            <input
+              value={search}
+              onChange={(e) => onSearch(e.target.value)}
+              placeholder={t("searchPosts") || "খুঁজুন…"}
+              className="w-full rounded-xl border border-line bg-page py-2.5 pl-9 pr-3
+                text-sm outline-none focus:border-brand-500 focus:bg-surface
+                placeholder:text-ink-400"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="space-y-0.5 px-1">
         <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
@@ -84,17 +88,31 @@ export default function BatchSidebar({
 
         {isTeacher && (
           <ToolButton icon={Users} tone="indigo" label={t("students")}
-            badge={batch.student_count} onClick={() => onOpen("students")} />
+            badge={batch.student_count}
+            onClick={() => navigate(`/teacher/batches/${batch.id}/students`, { state: { batch } })} />
         )}
         <ToolButton icon={ClipboardCheck} tone="emerald"
           label={isTeacher ? t("attendance") : t("myAttendance")}
-          onClick={() => onOpen("attendance")} />
+          onClick={() => navigate(
+            `${isTeacher ? "/teacher" : "/student"}/batches/${batch.id}/attendance`,
+            { state: { batch } }
+          )} />
         <ToolButton icon={BarChart3} tone="violet" label={t("results")}
-          onClick={() => onOpen("results")} />
+          onClick={() => navigate(
+            `${isTeacher ? "/teacher" : "/student"}/batches/${batch.id}/results`,
+            { state: { batch } }
+          )} />
         <ToolButton icon={Calendar} tone="sky" label={t("routine")}
-          onClick={() => onOpen("routine")} />
+          onClick={() => navigate(
+            `${isTeacher ? "/teacher" : "/student"}/batches/${batch.id}/routine`,
+            { state: { batch } }
+          )} />
         <ToolButton icon={Wallet} tone="amber"
-          label={isTeacher ? t("fee") : t("myFee")} onClick={() => onOpen("fee")} />
+          label={isTeacher ? t("fee") : t("myFee")}
+          onClick={() => navigate(
+            `${isTeacher ? "/teacher" : "/student"}/batches/${batch.id}/fee`,
+            { state: { batch } }
+          )} />
 
         {isTeacher && (
           <>

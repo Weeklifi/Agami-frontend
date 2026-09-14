@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 
-export default function Modal({ open, onClose, title, wide = false, children }) {
+export default function Modal({ open, onClose, title, wide = false, size, children }) {
+  // size: "xl" → চওড়া table-এর জন্য; নাহলে wide=2xl, default=md
+  const maxWidth =
+    size === "xl" ? "sm:max-w-5xl" : wide ? "sm:max-w-2xl" : "sm:max-w-md";
   // Modal খোলা থাকলে পেছনের page scroll বন্ধ — নাহলে মোবাইলে
   // modal scroll করতে গিয়ে পেছনের page নড়ে, খুব বিরক্তিকর
   useEffect(() => {
@@ -22,7 +25,7 @@ export default function Modal({ open, onClose, title, wide = false, children }) 
         className={`relative w-full bg-surface
           rounded-t-2xl sm:rounded-2xl
           max-h-[88dvh] sm:max-h-[85dvh] flex flex-col
-          ${wide ? "sm:max-w-2xl" : "sm:max-w-md"}`}
+          ${maxWidth}`}
       >
         {/* মোবাইলে টানার handle — bottom sheet বোঝাতে */}
         <div className="sm:hidden flex justify-center pt-2.5 pb-1">
